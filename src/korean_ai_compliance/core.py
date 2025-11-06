@@ -54,9 +54,13 @@ class ComplianceAssessment:
         self.requirements.append(requirement)
     
     def calculate_overall_status(self) -> ComplianceStatus:
-        """Calculate overall compliance status based on individual requirements."""
+        """Calculate overall compliance status based on individual requirements.
+        
+        This method also updates the instance's overall_status field.
+        """
         if not self.requirements:
-            return ComplianceStatus.NOT_ASSESSED
+            self.overall_status = ComplianceStatus.NOT_ASSESSED
+            return self.overall_status
         
         statuses = [req.status for req in self.requirements]
         
@@ -66,18 +70,22 @@ class ComplianceAssessment:
             for req in self.requirements
         )
         if mandatory_non_compliant:
-            return ComplianceStatus.NON_COMPLIANT
+            self.overall_status = ComplianceStatus.NON_COMPLIANT
+            return self.overall_status
         
         # If all assessed requirements are compliant
         if all(s == ComplianceStatus.COMPLIANT for s in statuses):
-            return ComplianceStatus.COMPLIANT
+            self.overall_status = ComplianceStatus.COMPLIANT
+            return self.overall_status
         
         # If any are not assessed
         if any(s == ComplianceStatus.NOT_ASSESSED for s in statuses):
-            return ComplianceStatus.PARTIAL
+            self.overall_status = ComplianceStatus.PARTIAL
+            return self.overall_status
         
         # Otherwise partial compliance
-        return ComplianceStatus.PARTIAL
+        self.overall_status = ComplianceStatus.PARTIAL
+        return self.overall_status
     
     def get_summary(self) -> Dict[str, int]:
         """Get a summary count of requirements by status."""

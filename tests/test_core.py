@@ -101,6 +101,8 @@ class TestComplianceAssessment:
         
         status = assessment.calculate_overall_status()
         assert status == ComplianceStatus.COMPLIANT
+        # Verify that the instance variable is also updated
+        assert assessment.overall_status == ComplianceStatus.COMPLIANT
     
     def test_calculate_overall_status_mandatory_non_compliant(self):
         """Test overall status when mandatory requirement is non-compliant."""
