@@ -5,7 +5,7 @@
 ### 1. **New AI Law + Unprepared Companies = Urgent Need**
 
 **The Reality:**[1][2]
-- Korea's AI Basic Act takes full effect **January 2026** (just 2 months away!)
+- Korea's AI Basic Act takes full effect **January 2026**
 - **Any AI system impacting Korean market must comply**—even foreign companies
 - Penalties: **₩30 million (~$21,000) fines** + potential imprisonment
 - Most companies have **zero compliance infrastructure** ready
@@ -169,10 +169,16 @@ import json
 from datetime import datetime
 
 def log_ai_decision(input_data, prediction, model_version, confidence):
+    import hashlib
+    
+    # Create secure hash of input data
+    input_str = json.dumps(input_data, sort_keys=True)
+    input_hash = hashlib.sha256(input_str.encode()).hexdigest()
+    
     audit_log = {
         'timestamp': datetime.utcnow().isoformat(),
         'model_version': model_version,
-        'input_hash': hash(str(input_data)),
+        'input_hash': input_hash,
         'prediction': prediction,
         'confidence': confidence,
         'reviewer': None  # Update when human reviews
@@ -300,10 +306,11 @@ Implement mechanisms for:
 ## 10. **Resources and Support**
 
 ### Official Government Resources
-- **Korean AI Safety Authority**: [Link placeholder - check official government website]
-- **AI Basic Act Full Text**: [Link placeholder - check official legislation database]
-- **Compliance Guidelines**: [Link placeholder - check regulatory website]
-- **Registration Portal**: [Link placeholder - check official portal]
+- **Ministry of Science and ICT (MSIT)**: https://www.msit.go.kr
+- **Korea Internet & Security Agency (KISA)**: https://www.kisa.or.kr
+- **Personal Information Protection Commission**: https://www.pipc.go.kr
+- **Korean Government Legislation Portal**: https://www.law.go.kr
+- **Note**: Check official government websites for latest AI Basic Act resources and registration portals as they become available
 
 ### Professional Services
 Consider engaging:
