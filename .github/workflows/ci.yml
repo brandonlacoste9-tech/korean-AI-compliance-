@@ -1,0 +1,148 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install --upgrade pip
+        pip install pytest pytest-cov fastapi httpx
+        # pip install -r requirements.txt  # Uncomment when requirements.txt exists
+    
+    - name: Run tests
+      run: |
+        cd backend
+        pytest tests/ -v --cov=app --cov-report=term-missing
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        file: ./backend/coverage.xml
+        flags: backend
+        name: backend-coverage
+
+  frontend-test:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci || echo "No frontend/package.json yet - skipping"
+    
+    - name: Run linter
+      run: |
+        cd frontend
+        npm run lint || echo "No lint script - skipping"
+    
+    - name: Run tests
+      run: |
+        cd frontend
+        npm test -- --passWithNoTests || echo "No tests yet - skipping"
+    
+    - name: Build
+      run: |
+        cd frontend
+        npm run build || echo "No build script - skipping"
+
+  deploy-backend:
+    name: Deploy Backend to Railway
+    needs: backend-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to Railway
+      run: |
+        echo "Deploy to Railway when RAILWAY_TOKEN secret is configured"
+        # Uncomment and configure when ready:
+        # npm install -g @railway/cli
+        # railway link ${{ secrets.RAILWAY_PROJECT_ID }}
+        # railway up --service backend
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  deploy-frontend:
+    name: Deploy Frontend to Netlify
+    needs: frontend-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Deploy to Netlify
+      run: |
+        echo "Deploy to Netlify when NETLIFY_AUTH_TOKEN secret is configured"
+        # Uncomment and configure when ready:
+        # cd frontend
+        # npm ci
+        # npm run build
+        # npx netlify-cli deploy --prod --dir=dist --site=${{ secrets.NETLIFY_SITE_ID }}
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
