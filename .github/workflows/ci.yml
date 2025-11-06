@@ -6,10 +6,16 @@ on:
   pull_request:
     branches: [ main ]
 
+# Set explicit permissions for GITHUB_TOKEN (security best practice)
+permissions:
+  contents: read
+
 jobs:
   backend-test:
     name: Backend Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
     - uses: actions/checkout@v3
@@ -52,6 +58,8 @@ jobs:
   frontend-test:
     name: Frontend Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
     - uses: actions/checkout@v3
@@ -100,6 +108,8 @@ jobs:
     needs: backend-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
     
     steps:
     - uses: actions/checkout@v3
@@ -119,6 +129,8 @@ jobs:
     needs: frontend-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
     
     steps:
     - uses: actions/checkout@v3
@@ -143,6 +155,9 @@ jobs:
   security-scan:
     name: Security Scanning
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write  # Required to upload SARIF results
     
     steps:
     - uses: actions/checkout@v3
