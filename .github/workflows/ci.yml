@@ -32,7 +32,9 @@ jobs:
         cd backend
         pip install --upgrade pip
         pip install pytest pytest-cov fastapi httpx
-        # pip install -r requirements.txt  # Uncomment when requirements.txt exists
+        if [ -f requirements.txt ]; then
+          pip install -r requirements.txt
+        fi
     
     - name: Run tests
       run: |
@@ -54,32 +56,44 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Check if frontend exists
+      id: check_frontend
+      run: |
+        if [ -d "frontend" ] && [ -f "frontend/package.json" ]; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Set up Node.js
+      if: steps.check_frontend.outputs.exists == 'true'
       uses: actions/setup-node@v3
       with:
         node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
     
     - name: Install dependencies
+      if: steps.check_frontend.outputs.exists == 'true'
       run: |
         cd frontend
-        npm ci || echo "No frontend/package.json yet - skipping"
+        npm ci
     
     - name: Run linter
+      if: steps.check_frontend.outputs.exists == 'true'
       run: |
         cd frontend
-        npm run lint || echo "No lint script - skipping"
+        npm run lint || echo "No lint script configured"
     
     - name: Run tests
+      if: steps.check_frontend.outputs.exists == 'true'
       run: |
         cd frontend
-        npm test -- --passWithNoTests || echo "No tests yet - skipping"
+        npm test -- --passWithNoTests || echo "No tests configured yet"
     
     - name: Build
+      if: steps.check_frontend.outputs.exists == 'true'
       run: |
         cd frontend
-        npm run build || echo "No build script - skipping"
+        npm run build
 
   deploy-backend:
     name: Deploy Backend to Railway
