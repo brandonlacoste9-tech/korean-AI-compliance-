@@ -24,6 +24,8 @@ This repository provides tools, guidelines, and resources to help organizations 
 
 ## Quick Start
 
+**→ [Get Started Guide](docs/GETTING_STARTED.md)** - Detailed walkthrough and tutorials
+
 ```bash
 # Clone the repository
 git clone https://github.com/brandonlacoste9-tech/korean-AI-compliance-.git
