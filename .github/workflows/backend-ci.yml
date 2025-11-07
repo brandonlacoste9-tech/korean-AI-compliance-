@@ -1,0 +1,158 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'pyproject.toml'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'pyproject.toml'
+      - '.github/workflows/backend-ci.yml'
+
+jobs:
+  lint-and-test:
+    name: Lint, Type Check, and Test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      
+      - name: Check formatting with Black
+        run: black --check backend/ --line-length 100
+      
+      - name: Lint with Flake8
+        run: flake8 backend/ --max-line-length=100 --extend-ignore=E203,W503
+      
+      - name: Check imports with isort
+        run: isort --check-only backend/ --profile black
+      
+      - name: Type check with MyPy
+        run: mypy backend/ --python-version ${{ matrix.python-version }}
+        continue-on-error: true
+      
+      - name: Run tests with pytest
+        run: pytest backend/ --cov=backend --cov-report=xml --cov-report=term-missing
+        if: always()
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: matrix.python-version == '3.12' && always()
+        with:
+          files: ./coverage.xml
+          flags: backend
+          name: backend-coverage
+        continue-on-error: true
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install safety bandit
+      
+      - name: Check for known vulnerabilities with Safety
+        run: safety check --json
+        continue-on-error: true
+      
+      - name: Security scan with Bandit
+        run: bandit -r backend/ -f json -o bandit-report.json
+        continue-on-error: true
+      
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+      
+      - name: Scan for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./backend
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+  compliance-check:
+    name: Korean AI Compliance Verification
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Verify compliance documentation
+        run: |
+          echo "🔍 Checking Korean AI Basic Law compliance documentation..."
+          
+          # Check for required compliance files
+          if [ ! -f "docs/compliance/article-31-reference.md" ]; then
+            echo "❌ Missing: Article 31 reference document"
+            exit 1
+          fi
+          
+          if [ ! -f "docs/compliance/checklist.md" ]; then
+            echo "❌ Missing: Compliance checklist"
+            exit 1
+          fi
+          
+          echo "✅ All compliance documentation present"
+      
+      - name: Verify formal Korean language standards
+        run: |
+          echo "🔍 Checking for formal Korean (존댓말) in compliance docs..."
+          
+          # Check for formal Korean markers in compliance documents
+          if grep -q "합니다\|입니다\|됩니다" docs/compliance/*.md; then
+            echo "✅ Formal Korean language detected"
+          else
+            echo "⚠️ Warning: Formal Korean markers not found in compliance docs"
+          fi
+      
+      - name: Verify PIPC audit logging markers
+        run: |
+          echo "🔍 Checking for PIPC audit logging implementation markers..."
+          
+          # This will check for audit logging when backend is implemented
+          if [ -d "backend" ] && [ "$(ls -A backend/*.py 2>/dev/null)" ]; then
+            if grep -r "audit.*log\|consent.*track\|PIPC" backend/*.py; then
+              echo "✅ PIPC audit logging markers found"
+            else
+              echo "⚠️ Warning: PIPC audit logging not yet implemented"
+            fi
+          else
+            echo "ℹ️ Backend not yet implemented - skipping audit check"
+          fi
