@@ -43,7 +43,7 @@ const RiskAssessment: React.FC = () => {
         locale: typeof window !== 'undefined' ? window.navigator.language : 'ko-KR',
       };
 
-      await axios.post(`${apiUrl}/api/risk/assess`, submissionData, {
+      await axios.post(`${apiUrl}/v1/assessments`, submissionData, {
         headers: {
           'Content-Type': 'application/json',
         },
