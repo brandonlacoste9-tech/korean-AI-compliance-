@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, create_engine, Session, select
 from dotenv import load_dotenv
@@ -9,6 +10,15 @@ from api.email_campaign import router as email_router
 load_dotenv()
 
 app = FastAPI(title="AI Compliance Guardian SaaS", version="1.0.0")
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify exact domains
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Include email campaign router
 app.include_router(email_router, prefix="/v1/email", tags=["Email Campaigns"])
