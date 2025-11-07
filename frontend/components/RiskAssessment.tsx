@@ -26,7 +26,7 @@ const RiskAssessment: React.FC = () => {
     setSubmitStatus('idle');
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : '');
       
       // Log consent, IP, and timestamp for PIPC compliance
       const submissionData = {
@@ -130,9 +130,10 @@ const RiskAssessment: React.FC = () => {
             {t('risk_assessment.personal_data')}
           </label>
           <div className="flex items-center space-x-6">
-            <label className="flex items-center space-x-2 cursor-pointer">
+            <label htmlFor="personalDataYes" className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="radio"
+                id="personalDataYes"
                 name="processesPersonalData"
                 checked={formData.processesPersonalData === true}
                 onChange={() => setFormData((prev) => ({ ...prev, processesPersonalData: true }))}
@@ -140,9 +141,10 @@ const RiskAssessment: React.FC = () => {
               />
               <span>{t('risk_assessment.yes')}</span>
             </label>
-            <label className="flex items-center space-x-2 cursor-pointer">
+            <label htmlFor="personalDataNo" className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="radio"
+                id="personalDataNo"
                 name="processesPersonalData"
                 checked={formData.processesPersonalData === false}
                 onChange={() => setFormData((prev) => ({ ...prev, processesPersonalData: false }))}

@@ -35,14 +35,14 @@ const PricingCard: React.FC<PricingCardProps> = ({
       const stripe = await stripePromise;
       if (!stripe) throw new Error('Stripe failed to load');
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : '');
       const response = await fetch(`${apiUrl}/api/stripe/create-checkout-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          priceId: 'price_professional_plan_krw',
+          priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID || 'price_professional_plan_krw',
           successUrl: `${window.location.origin}/success`,
           cancelUrl: `${window.location.origin}/cancel`,
         }),
