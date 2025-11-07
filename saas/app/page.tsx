@@ -12,11 +12,45 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [currency, setCurrency] = useState<'USD' | 'KRW'>('USD');
   const [installments, setInstallments] = useState<number>(1);
+  const [error, setError] = useState<string>('');
+  const [assessmentId, setAssessmentId] = useState<string>('');
 
-  const handleAssess = (formData: FormData) => {
-    const highRisk = (formData.get('personal_data') ? 1 : 0) + (formData.get('safety_impact') ? 1 : 0);
-    const score = highRisk * 50;
-    setRiskScore(score);
+  const handleAssess = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const formData = new FormData(e.currentTarget);
+
+    const payload = {
+      company_name: formData.get('company_name') as string,
+      email: formData.get('email') as string,
+      ai_usage: formData.get('ai_usage') as string,
+      processes_personal_data: formData.get('processes_personal_data') === 'on',
+    };
+
+    try {
+      const response = await fetch('/api/risk-assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to assess risk');
+      }
+
+      // Backend returns { id, risk_score, risk_level, ... }
+      setRiskScore(data.risk_score || 0);
+      setAssessmentId(data.id || '');
+    } catch (err: any) {
+      console.error('Assessment error:', err);
+      setError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCheckout = async (plan: 'starter' | 'professional' | 'enterprise') => {
@@ -140,22 +174,80 @@ export default function Home() {
         ) : riskScore === 0 ? (
           <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow">
             <h2 className="text-2xl font-bold mb-6">AI System Risk Assessment</h2>
-            <form onSubmit={(e) => { e.preventDefault(); handleAssess(new FormData(e.currentTarget)); }}>
-              <div className="space-y-4">
-                <label className="flex items-center space-x-3">
-                  <input type="checkbox" name="personal_data" className="w-5 h-5" />
-                  <span className="text-lg">Does your AI system process personal data?</span>
-                </label>
-                <label className="flex items-center space-x-3">
-                  <input type="checkbox" name="safety_impact" className="w-5 h-5" />
-                  <span className="text-lg">Does your AI system impact safety or critical decisions?</span>
-                </label>
+
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-800 font-semibold">Error</p>
+                <p className="text-red-600 text-sm">{error}</p>
               </div>
+            )}
+
+            <form onSubmit={handleAssess}>
+              <div className="space-y-6">
+                <div>
+                  <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Company Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="company_name"
+                    name="company_name"
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Your company name"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="you@company.com"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="ai_usage" className="block text-sm font-medium text-gray-700 mb-2">
+                    AI System Usage <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="ai_usage"
+                    name="ai_usage"
+                    required
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Describe how your AI system is used (e.g., recommendation engine, chatbot, automated decision-making)"
+                  ></textarea>
+                </div>
+
+                <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
+                  <input
+                    type="checkbox"
+                    id="processes_personal_data"
+                    name="processes_personal_data"
+                    className="w-5 h-5 mt-1 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="processes_personal_data" className="text-sm text-gray-700">
+                    <span className="font-semibold">Does your AI system process personal data?</span>
+                    <p className="text-gray-500 mt-1">
+                      This includes names, emails, IDs, biometric data, or any information that can identify individuals.
+                    </p>
+                  </label>
+                </div>
+              </div>
+
               <button
                 type="submit"
-                className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold w-full"
+                disabled={loading}
+                className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold w-full disabled:bg-gray-400 disabled:cursor-not-allowed transition"
               >
-                Calculate Risk Score
+                {loading ? 'Analyzing...' : 'Calculate Risk Score'}
               </button>
             </form>
           </div>
