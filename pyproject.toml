@@ -51,11 +51,10 @@ Issues = "https://github.com/brandonlacoste9-tech/korean-AI-compliance-/issues"
 # [project.scripts]
 # korean-ai-compliance = "korean_ai_compliance.cli:main"
 
-# [tool.setuptools]
-# package-dir = {"" = "src"}
-
-# [tool.setuptools.packages.find]
-# where = ["src"]
+[tool.setuptools]
+# Explicitly exclude backend and frontend directories from package discovery
+# These are separate applications with their own build systems
+packages = []
 
 [tool.black]
 line-length = 100
