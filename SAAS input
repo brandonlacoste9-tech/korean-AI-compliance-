@@ -1,0 +1,228 @@
+````markdown name=SAAS_BUILD_INSTRUCTIONS.md
+## Detailed Instructions Message for GitHub (Copy-Paste Ready)
+
+Here's a ready-to-use, detailed message you can copy-paste into GitHub. You can send this to:
+
+- **GitHub Copilot in VS Code**: Paste as a comment or prompt (e.g., "// Generate saas/ folder based on this spec").
+- **GitHub Web Editor**: Use it as notes while creating files.
+- **GitHub Issues or Discussions**: Post in your repo's Issues tab to document the task or get community help.
+- **GitHub Support (if needed)**: Via help.github.com > Contact Support, if there's a technical block.
+
+Just copy the entire block below and paste it where needed. It includes the full `saas/` structure, code snippets, and step-by-step build instructions based on our conversation.
+
+***
+
+**Subject (for Issues/Discussions): Add SaaS Layer to Open-Source Korean AI Compliance Framework**
+
+**Description:**
+
+I'm building a commercial SaaS product (AI Compliance Guardian) on top of this open-source Korean AI compliance framework. The SaaS will provide automated monitoring, risk scoring, and template generation for the AI Basic Act (January 22, 2026 deadline).
+
+Please help generate/add the `saas/` folder structure with the following files and code. This combines FastAPI backend for regulatory scraping/risk scoring, Next.js frontend for dashboard, Korean templates, and deployment setup. The goal is a monorepo where the open-source framework (current code) powers the paid SaaS.
+
+### Repo Structure Update
+Add a new top-level folder `saas/` with subfolders:
+- `saas/backend/` (FastAPI API for monitoring and scoring)
+- `saas/frontend/` (Next.js dashboard with risk assessment)
+- `saas/database/` (Supabase schema for evidence vault)
+- `saas/templates/korean/` (Compliance docs for Articles 31-36)
+- `saas/marketing/` (GTM materials: emails, decks)
+- Root `saas/` files: `requirements.txt`, `package.json`, `Dockerfile`
+
+### Step-by-Step Build Instructions
+
+1. **Create Folder Structure** (do this first via web editor or local git):
+   ```
+   mkdir -p saas/backend/app/{main,scrapers,api,models}
+   mkdir -p saas/frontend/{app/{page,dashboard,systems,regulations,evidence},components/{RiskAssessment,ComplianceTimeline,RegulatoryScan}}
+   mkdir -p saas/{database,templates/korean,marketing/{content,decks,email}}
+   ```
+
+2. **Add saas/requirements.txt** (Backend Python deps):
+   ```
+   fastapi==0.104.1
+   uvicorn==0.24.1
+   sqlmodel==0.0.14
+   requests==2.31.0
+   beautifulsoup4==4.12.2
+   python-dotenv==1.0.0
+   schedule==1.2.0
+   supabase==2.4.0
+   pytest==7.4.3
+   ```
+
+3. **Add saas/backend/app/main.py** (Core API with endpoints for systems, scoring, regulations):
+   ```python
+   from fastapi import FastAPI, HTTPException
+   from pydantic import BaseModel
+   from sqlmodel import SQLModel, Field, create_engine, Session, select
+   from dotenv import load_dotenv
+   import os
+   from datetime import datetime
+
+   load_dotenv()
+
+   app = FastAPI(title="AI Compliance Guardian SaaS", version="1.0.0")
+
+   DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./compliance.db")
+   engine = create_engine(DATABASE_URL, echo=True)
+
+   class Regulation(BaseModel):
+       source: str
+       text: str
+       last_update: str = datetime.now().isoformat()
+       changes: list = []
+
+   class System(BaseModel):
+       name: str
+       industry: str = "manufacturing"
+       use_case: str
+       risk_score: int = 0
+
+   class RiskAssessment(BaseModel):
+       system_id: int
+       score: int
+       gaps: list
+       action_items: list
+
+   class ComplianceSystem(SQLModel, table=True):
+       id: int = Field(default=None, primary_key=True)
+       name: str
+       industry: str
+       use_case: str
+       risk_score: int = 0
+       created_at: datetime = Field(default_factory=datetime.now)
+
+   SQLModel.metadata.create_all(engine)
+
+   @app.get("/healthz")
+   def health():
+       return {"status": "healthy"}
+
+   @app.post("/v1/systems", response_model=System)
+   def create_system(system: System):
+       return System(**system.dict(), risk_score=0)  # Add to DB in production
+
+   @app.post("/v1/systems/{system_id}/score", response_model=RiskAssessment)
+   def score_system(system_id: int, assessment: dict):
+       # Risk scoring based on AI Basic Act (high-impact triggers)
+       high_risk_factors = sum(1 for k, v in assessment.items() if v.get('high_risk'))
+       score = min(100, high_risk_factors * 25)
+       gaps = ["Article 32: Risk management missing"] if score > 50 else []
+       action_items = ["Implement oversight", "Update docs"] if gaps else ["Annual review"]
+       return RiskAssessment(system_id=system_id, score=score, gaps=gaps, action_items=action_items)
+
+   @app.get("/v1/regulations/latest", response_model=list[Regulation])
+   def get_latest_regulations():
+       # Mock for MSIT/PIPC/law.go.kr - add real scrapers later
+       return [
+           Regulation(source="MSIT", text="AI Basic Act decree finalized Jan 22, 2026", changes=["New high-impact thresholds"]),
+           Regulation(source="PIPC", text="Generative AI privacy guidelines", changes=["Proportionality checks required"])
+       ]
+
+   @app.post("/v1/evidence/snapshot")
+   def snapshot_evidence(evidence: dict):
+       evidence['timestamp'] = datetime.now().isoformat()
+       return {"id": len(evidence), "status": "stored"}  # Store in Supabase
+
+   if __name__ == "__main__":
+       import uvicorn
+       uvicorn.run(app, host="0.0.0.0", port=8000)
+   ```
+
+4. **Add saas/package.json** (Frontend deps):
+   ```json
+   {
+     "name": "ai-compliance-frontend",
+     "version": "1.0.0",
+     "scripts": {
+       "dev": "next dev",
+       "build": "next build",
+       "start": "next start"
+     },
+     "dependencies": {
+       "next": "14.0.0",
+       "react": "^18.2.0",
+       "react-dom": "^18.2.0",
+       "axios": "^1.6.0",
+       "tailwindcss": "^3.3.0"
+     },
+     "devDependencies": {
+       "@types/react": "^18.2.0",
+       "typescript": "^5.0.0"
+     }
+   }
+   ```
+
+5. **Add saas/frontend/app/page.tsx** (Korean landing page with assessment):
+   ```tsx
+   "use client";
+   import { useState } from 'react';
+
+   export default function Home() {
+     const [riskScore, setRiskScore] = useState(0);
+     const [showForm, setShowForm] = useState(false);
+
+     const handleAssess = (formData: FormData) => {
+       const highRisk = formData.get('personal_data') ? 1 : 0 + formData.get('safety_impact') ? 1 : 0;
+       const score = highRisk * 50;
+       setRiskScore(score);
+     };
+
+     return (
+       <div className="min-h-screen bg-gray-50">
+         <header className="bg-white shadow">
+           <div className="max-w-7xl mx-auto px-4 py-6">
+             <h1 className="text-3xl font-bold">[translate:AI 규정 준수 가디언]</h1>
+             <p className="mt-1 text-gray-600">Korean AI Basic Act Compliance SaaS</p>
+           </div>
+         </header>
+         <main className="max-w-7xl mx-auto py-6">
+           {showForm ? (
+             <form onSubmit={(e) => { e.preventDefault(); handleAssess(new FormData(e.currentTarget)); }}>
+               <label><input type="checkbox" name="personal_data" /> Uses personal data?</label><br/>
+               <label><input type="checkbox" name="safety_impact" /> Impacts safety?</label><br/>
+               <button type="submit" className="bg-blue-500 text-white px-4 py-2 mt-2">Calculate Risk</button>
+               {riskScore > 0 && <p>Risk Score: {riskScore}/100 - {riskScore > 50 ? "High - Act Now" : "Low"}</p>}
+             </form>
+           ) : (
+             <button onClick={() => setShowForm(true)} className="bg-blue-500 text-white px-6 py-3">
+               Start Free Assessment
+             </button>
+           )}
+         </main>
+       </div>
+     );
+   }
+   ```
+
+6. **Add saas/templates/korean/article-31.md** (Example template):
+   ```
+   # [translate:제 31조 AI 고지 템플릿]
+   
+   이 AI 시스템은 인공지능 기본법 제31조에 따라 투명성을 위해 다음과 같이 고지합니다:
+   - 시스템 유형: [고위험/중간/저위험]
+   - 결정 과정: [설명]
+   - 인간 감독: [세부 사항]
+   - 문의: [연락처]
+   ```
+
+7. **Commit Changes**:
+   - Commit message: "feat: Add saas/ layer for commercial AI Compliance Guardian (FastAPI + Next.js + templates)"
+   - Push to main.
+
+### Deployment Notes
+- Backend: Deploy to Railway (`railway up` from saas/backend).
+- Frontend: Deploy to Netlify (`netlify deploy` from saas/frontend).
+- Add GitHub Actions in `.github/workflows/saas-deploy.yml` for auto-deploys on push to main.
+
+This will create a full SaaS product built on the open-source framework. Tag me (@brandonlacoste9-tech) for review after adding!
+
+**End of Message**
+
+***
+
+Copy the above (from "Subject" to end) and paste it into your GitHub tool of choice. For Copilot, it can generate the rest based on this spec. If you need adjustments (e.g., more files or Korean translations), let me know!
+
+Once sent/added, share the repo update link, and we'll test deployment next. Ready to go live? 🚀
+````
