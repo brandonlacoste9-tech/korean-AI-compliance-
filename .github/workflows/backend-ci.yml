@@ -153,8 +153,8 @@ jobs:
           echo "🔍 Checking for PIPC audit logging implementation markers..."
           
           # This will check for audit logging when backend is implemented
-          if [ -d "backend" ] && [ "$(ls -A backend/*.py 2>/dev/null)" ]; then
-            if grep -r "audit.*log\|consent.*track\|PIPC" backend/*.py; then
+          if [ -d "backend" ] && find backend -name "*.py" -type f | grep -q .; then
+            if grep -r "audit.*log\|consent.*track\|PIPC" backend/ --include="*.py"; then
               echo "✅ PIPC audit logging markers found"
             else
               echo "⚠️ Warning: PIPC audit logging not yet implemented"
