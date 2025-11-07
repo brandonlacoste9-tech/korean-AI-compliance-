@@ -1,0 +1,104 @@
+{
+  "site": {
+    "title": "Korean AI Compliance Guardian",
+    "description": "Professional solution for AI Basic Act and PIPC compliance",
+    "deadline": "Until January 22, 2026"
+  },
+  "header": {
+    "home": "Home",
+    "services": "Services",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "msit_badge": "MSIT Certified",
+    "pipc_badge": "PIPC Compliant"
+  },
+  "hero": {
+    "title": "AI Basic Act Compliance: 77 Days Left",
+    "subtitle": "Complete Korean Privacy & AI Regulation Compliance",
+    "cta": "Start Free Risk Assessment",
+    "countdown_title": "Time until compliance deadline",
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds"
+  },
+  "risk_assessment": {
+    "title": "AI Risk Assessment",
+    "subtitle": "Check if your AI systems comply with Korean regulations",
+    "company_name": "Company Name",
+    "company_name_placeholder": "Enter your company name",
+    "email": "Email Address",
+    "email_placeholder": "Enter your email",
+    "ai_usage": "AI Usage",
+    "ai_usage_placeholder": "Describe your AI use cases",
+    "personal_data": "Processing Personal Data?",
+    "yes": "Yes",
+    "no": "No",
+    "submit": "Submit Assessment",
+    "submitting": "Submitting...",
+    "success": "Assessment submitted successfully. We'll contact you soon.",
+    "error": "An error occurred. Please try again."
+  },
+  "pricing": {
+    "title": "Pricing Plans",
+    "subtitle": "Choose the plan that fits your compliance needs",
+    "starter": {
+      "name": "Starter",
+      "price": "Free",
+      "description": "Essential compliance tools for small teams",
+      "features": [
+        "Basic risk assessment",
+        "Compliance checklist",
+        "Email support",
+        "Monthly reports"
+      ],
+      "cta": "Get Started"
+    },
+    "professional": {
+      "name": "Professional",
+      "price": "₩390,000",
+      "period": "per month",
+      "description": "Complete compliance solution for enterprises",
+      "features": [
+        "Advanced risk assessment & monitoring",
+        "PIPC audit logging (Seoul region)",
+        "Real-time compliance dashboard",
+        "Dedicated compliance consulting",
+        "MSIT/PIPC certification support",
+        "Priority support (24/7)"
+      ],
+      "cta": "Subscribe Now"
+    }
+  },
+  "compliance": {
+    "title": "Compliance Assurance",
+    "seoul_residency": "Supabase Seoul region data residency",
+    "audit_logging": "Automated PIPC audit logging",
+    "msit_certified": "MSIT certification process",
+    "pipc_compliant": "Personal Information Protection Commission compliant"
+  },
+  "footer": {
+    "copyright": "© 2024 Korean AI Compliance Guardian. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "Contact: contact@korean-ai-compliance.kr"
+  },
+  "success_page": {
+    "title": "Payment Successful!",
+    "message": "Your Professional plan subscription has been processed successfully.",
+    "next_steps": "Next Steps",
+    "step1": "Check your email for confirmation",
+    "step2": "You'll receive dashboard access credentials",
+    "step3": "A dedicated consultant will reach out within 24 hours",
+    "back_home": "Back to Home"
+  },
+  "cancel_page": {
+    "title": "Payment Cancelled",
+    "message": "Don't worry, you can try again anytime.",
+    "reason_title": "Need Help?",
+    "reason_text": "If you have questions or need assistance, feel free to contact us.",
+    "contact_us": "Contact Us",
+    "back_home": "Back to Home",
+    "try_again": "Try Again"
+  }
+}

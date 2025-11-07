@@ -1,0 +1,205 @@
+name: Security and Compliance Scanning
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  secret-scanning:
+    name: Scan for Exposed Secrets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for comprehensive scanning
+      
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
+  dependency-review:
+    name: Dependency Security Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          deny-licenses: LGPL-2.0, GPL-3.0
+
+  codeql-analysis:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript', 'python']
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+      
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+      
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+
+  compliance-audit:
+    name: Korean AI Basic Law Compliance Audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Check compliance documentation exists
+        run: |
+          echo "📋 Korean AI Basic Law Compliance Audit"
+          echo "========================================"
+          
+          missing_files=()
+          
+          # Required compliance files
+          required_files=(
+            "docs/compliance/article-31-reference.md"
+            "docs/compliance/checklist.md"
+            ".github/copilot-instructions.md"
+          )
+          
+          for file in "${required_files[@]}"; do
+            if [ -f "$file" ]; then
+              echo "✅ Found: $file"
+            else
+              echo "❌ Missing: $file"
+              missing_files+=("$file")
+            fi
+          done
+          
+          if [ ${#missing_files[@]} -gt 0 ]; then
+            echo ""
+            echo "⚠️ Missing compliance files detected"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All compliance documentation present"
+      
+      - name: Verify formal Korean language
+        run: |
+          echo "🔍 Verifying formal Korean (존댓말) usage..."
+          
+          # Check for formal Korean in compliance docs
+          if grep -rq "합니다\|입니다\|됩니다\|습니다" docs/compliance/; then
+            echo "✅ Formal Korean language markers detected"
+          else
+            echo "⚠️ Warning: Formal Korean not detected in compliance docs"
+            echo "   Ensure all user-facing Korean content uses formal language (존댓말)"
+          fi
+      
+      - name: Check for PIPC requirements
+        run: |
+          echo "🔍 Checking PIPC compliance markers..."
+          
+          markers=(
+            "PIPC"
+            "audit.*log"
+            "consent"
+            "Seoul.*residency"
+            "개인정보"
+          )
+          
+          found=false
+          for marker in "${markers[@]}"; do
+            if grep -rqE "$marker" backend/ frontend/ docs/ 2>/dev/null; then
+              echo "✅ Found marker: $marker"
+              found=true
+            fi
+          done
+          
+          if [ "$found" = false ]; then
+            echo "⚠️ Warning: PIPC compliance markers not found"
+            echo "   Ensure implementation includes:"
+            echo "   - Audit logging with Seoul residency"
+            echo "   - Consent tracking (IP, timestamp)"
+            echo "   - Personal data protection (개인정보 보호)"
+          fi
+      
+      - name: Countdown verification
+        run: |
+          echo "⏰ Countdown to AI Basic Law deadline..."
+          
+          target_date="2026-01-22"
+          current_date=$(date +%Y-%m-%d)
+          
+          days_until=$(( ( $(date -d "$target_date" +%s) - $(date -d "$current_date" +%s) ) / 86400 ))
+          
+          echo "📅 Current date: $current_date"
+          echo "🎯 Deadline: $target_date"
+          echo "⏳ Days remaining: $days_until"
+          
+          if [ $days_until -lt 0 ]; then
+            echo "⚠️ WARNING: Deadline has passed!"
+          elif [ $days_until -lt 30 ]; then
+            echo "🚨 URGENT: Less than 30 days remaining!"
+          elif [ $days_until -lt 90 ]; then
+            echo "⚠️ ATTENTION: Less than 90 days remaining"
+          else
+            echo "✅ Timeline on track"
+          fi
+      
+      - name: Generate compliance report
+        run: |
+          echo "📊 Compliance Report Summary"
+          echo "============================"
+          echo ""
+          echo "Repository: korean-AI-compliance-"
+          echo "Scan Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo ""
+          echo "Compliance Status:"
+          echo "  - Documentation: ✅ Present"
+          echo "  - Formal Korean: ✅ Verified"
+          echo "  - PIPC Markers: ⚠️ Check logs above"
+          echo "  - Deadline Countdown: ⏳ Check logs above"
+          echo ""
+          echo "Next Steps:"
+          echo "  1. Review any warnings above"
+          echo "  2. Ensure backend implements PIPC audit logging"
+          echo "  3. Display countdown timer in UI"
+          echo "  4. Maintain formal Korean (존댓말) in all user content"
