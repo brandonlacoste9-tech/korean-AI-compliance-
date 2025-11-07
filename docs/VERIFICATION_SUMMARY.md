@@ -284,8 +284,10 @@ No open issues - clean slate for development
 
 ### 📅 Timeline
 - **Target MVP:** December 2025
-- **Compliance Deadline:** January 22, 2026 (77 days from now)
+- **Compliance Deadline:** January 22, 2026
 - **Recommended Launch:** January 15, 2026 (1-week buffer)
+
+> **Note:** Calculate days remaining with: `echo $(( ( $(date -d "2026-01-22" +%s) - $(date +%s) ) / 86400 ))` (GNU date)
 
 ---
 

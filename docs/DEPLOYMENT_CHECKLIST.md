@@ -411,13 +411,15 @@ Events to listen:
 
 **Korean AI Basic Law Full Effect Date:** January 22, 2026
 
-Calculate days remaining:
+Calculate days remaining (requires GNU date):
 ```bash
 target_date="2026-01-22"
 current_date=$(date +%Y-%m-%d)
 days_remaining=$(( ( $(date -d "$target_date" +%s) - $(date -d "$current_date" +%s) ) / 86400 ))
 echo "Days remaining: $days_remaining"
 ```
+
+> **Note:** On macOS, install GNU coreutils: `brew install coreutils` and use `gdate` instead of `date`
 
 **Timeline:**
 - **90 days before:** Final compliance review
