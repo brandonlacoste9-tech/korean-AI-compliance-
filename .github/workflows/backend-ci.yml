@@ -18,6 +18,8 @@ jobs:
   lint-and-test:
     name: Lint, Type Check, and Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     strategy:
       matrix:
@@ -67,6 +69,8 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout repository
@@ -109,6 +113,8 @@ jobs:
   compliance-check:
     name: Korean AI Compliance Verification
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout repository
