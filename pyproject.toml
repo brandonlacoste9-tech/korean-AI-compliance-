@@ -47,14 +47,15 @@ Homepage = "https://github.com/brandonlacoste9-tech/korean-AI-compliance-"
 Repository = "https://github.com/brandonlacoste9-tech/korean-AI-compliance-"
 Issues = "https://github.com/brandonlacoste9-tech/korean-AI-compliance-/issues"
 
-[project.scripts]
-korean-ai-compliance = "korean_ai_compliance.cli:main"
+# Project scripts removed - now using backend/ structure
+# [project.scripts]
+# korean-ai-compliance = "korean_ai_compliance.cli:main"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
+# [tool.setuptools]
+# package-dir = {"" = "src"}
 
-[tool.setuptools.packages.find]
-where = ["src"]
+# [tool.setuptools.packages.find]
+# where = ["src"]
 
 [tool.black]
 line-length = 100
@@ -70,9 +71,10 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = "--cov=korean_ai_compliance --cov-report=html --cov-report=term-missing"
+# Testing configuration removed - tests now managed in backend/
+# [tool.pytest.ini_options]
+# testpaths = ["tests"]
+# python_files = ["test_*.py"]
+# python_classes = ["Test*"]
+# python_functions = ["test_*"]
+# addopts = "--cov=korean_ai_compliance --cov-report=html --cov-report=term-missing"

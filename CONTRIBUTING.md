@@ -29,20 +29,17 @@ Thank you for your interest in contributing to the Korean AI Compliance Framewor
 git clone https://github.com/YOUR-USERNAME/korean-AI-compliance-.git
 cd korean-AI-compliance-
 
-# Create a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Set up backend
+cd backend
+cp .env.example .env
+# Configure your environment variables
 
-# Install development dependencies
-pip install -e ".[dev]"
+# Install backend dependencies (if any)
+# pip install -r requirements.txt
 
-# Run tests
-pytest
-
-# Run linters
-black src/ tests/
-flake8 src/ tests/
-mypy src/
+# Run backend linters (if configured)
+# black .
+# flake8 .
 ```
 
 ## Coding Standards
