@@ -35,7 +35,13 @@ const PricingCard: React.FC<PricingCardProps> = ({
       const stripe = await stripePromise;
       if (!stripe) throw new Error('Stripe failed to load');
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : '');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      
+      if (!apiUrl) {
+        console.error('NEXT_PUBLIC_API_URL is not configured');
+        return;
+      }
+      
       const response = await fetch(`${apiUrl}/api/stripe/create-checkout-session`, {
         method: 'POST',
         headers: {
@@ -63,7 +69,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
 
   return (
     <div
-      className={`glass rounded-2xl p-6 md:p-8 flex flex-col h-full ${
+      className={`glass rounded-2xl p-6 md:p-8 flex flex-col h-full relative ${
         isProfessional ? 'border-2 border-obangsaek-jeok shadow-xl' : ''
       }`}
     >

@@ -26,7 +26,14 @@ const RiskAssessment: React.FC = () => {
     setSubmitStatus('idle');
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : '');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      
+      if (!apiUrl) {
+        console.error('NEXT_PUBLIC_API_URL is not configured');
+        setSubmitStatus('error');
+        setIsSubmitting(false);
+        return;
+      }
       
       // Log consent, IP, and timestamp for PIPC compliance
       const submissionData = {

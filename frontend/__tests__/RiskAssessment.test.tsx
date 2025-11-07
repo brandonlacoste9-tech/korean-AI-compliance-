@@ -8,6 +8,19 @@ import axios from 'axios';
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
+// Mock environment variables
+const originalEnv = process.env;
+beforeAll(() => {
+  process.env = {
+    ...originalEnv,
+    NEXT_PUBLIC_API_URL: 'http://localhost:8000',
+  };
+});
+
+afterAll(() => {
+  process.env = originalEnv;
+});
+
 // Mock next-i18next
 jest.mock('next-i18next', () => ({
   useTranslation: () => ({
