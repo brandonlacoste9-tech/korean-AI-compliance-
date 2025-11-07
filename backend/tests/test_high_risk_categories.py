@@ -1,14 +1,9 @@
 """Tests for the high-risk industry categorisation logic."""
 from __future__ import annotations
 
-from pathlib import Path
-import sys
-
 import pytest
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
-
-from backend.app.models import (
+from ..app.models import (
     HIGH_RISK_CATEGORIES,
     AUDIT_LOG,
     RiskAssessmentRequest,
