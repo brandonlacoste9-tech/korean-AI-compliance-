@@ -1,7 +1,0 @@
-# Korean AI Compliance Framework - Requirements
-# Install with: pip install -r requirements.txt
-
-# Currently no runtime dependencies required
-# The framework uses only Python standard library
-
-# Development dependencies (optional, install with: pip install -r requirements.txt -r requirements-dev.txt)

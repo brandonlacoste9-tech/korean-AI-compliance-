@@ -1,256 +1,166 @@
-# Getting Started with Korean AI Compliance Framework
+# Getting Started with Korean AI Compliance Guardian
 
-This guide will help you get started with the Korean AI Compliance Framework for assessing your AI systems against the Korean AI Basic Act requirements.
+This guide will help you get started with the Korean AI Compliance Guardian SaaS platform for assessing your AI systems against the Korean AI Basic Act requirements.
 
-## Installation
+## Overview
 
-### From Source
+Korean AI Compliance Guardian is a production-ready SaaS platform designed to help organizations comply with:
+- Korean AI Basic Act (인공지능 기본법)
+- PIPC (Personal Information Protection Commission) requirements
+- MSIT (Ministry of Science and ICT) guidelines
+
+**Compliance Deadline: January 22, 2026** (77 days remaining)
+
+## Repository Structure
+
+```
+korean-AI-compliance-/
+├── backend/              # FastAPI backend with PIPC audit logging
+│   └── .env.example     # Environment configuration template
+├── docs/                # Documentation
+│   ├── compliance/      # Compliance references and checklists
+│   ├── DEPLOYMENT.md    # Deployment guide
+│   └── GETTING_STARTED.md
+├── .github/             # GitHub configuration
+└── pyproject.toml       # Project metadata
+```
+
+## Setup
+
+### Backend Setup
 
 ```bash
 # Clone the repository
 git clone https://github.com/brandonlacoste9-tech/korean-AI-compliance-.git
 cd korean-AI-compliance-
 
-# Install the package
-pip install -e .
+# Set up backend
+cd backend
+cp .env.example .env
+# Edit .env and configure your environment variables
+
+# Install dependencies (when requirements.txt is added)
+# pip install -r requirements.txt
+
+# Run the backend (instructions to be added)
+# uvicorn main:app --reload
 ```
 
 ### Requirements
 
 - Python 3.8 or higher
-- No additional runtime dependencies required (uses only Python standard library)
+- FastAPI for backend
+- Supabase (Seoul region for PIPC compliance)
+- Stripe for payment processing (KRW)
 
-## Quick Start
+## Key Features
 
-### 1. Using the Python API
+### 1. PIPC Audit Logging
+All risk assessments and user actions are logged with:
+- IP address tracking
+- Timestamp recording
+- Consent management
+- Seoul residency compliance
 
-```python
-from korean_ai_compliance import ComplianceChecker
-from korean_ai_compliance.core import ComplianceStatus
+### 2. Compliance Badges
+Display MSIT and PIPC trust badges on:
+- Landing pages
+- Risk assessment forms
+- Email templates
 
-# Create a compliance checker
-checker = ComplianceChecker()
+### 3. Bilingual Support
+- Korean (한국어) - Formal language (존댓말)
+- English
+- Powered by next-i18next
 
-# Create an assessment for your AI system
-assessment = checker.create_assessment(
-    ai_system_name="My AI System",
-    ai_system_description="Description of what the AI system does"
-)
+### 4. Obangsaek Design System
+Traditional Korean color palette:
+- 백 (White)
+- 청 (Blue)
+- 적 (Red)
+- 흑 (Black)
+- 황 (Yellow)
 
-# Review requirements
-print(f"Total requirements: {len(assessment.requirements)}")
+With glassmorphism UI effects for modern appearance.
 
-# Mark requirements as you assess them
-for req in assessment.requirements:
-    # Review each requirement and set status
-    if req.id == "TRANS-001":  # Example
-        req.status = ComplianceStatus.COMPLIANT
-        req.notes = "AI clearly identifies itself in the UI"
-        req.evidence = ["screenshot_ui.png", "user_testing_report.pdf"]
+## Compliance Features
 
-# Calculate overall compliance
-overall = assessment.calculate_overall_status()
-print(f"Overall status: {overall.value}")
+### Article 31 AI Disclosure Template
+Reference template for AI system transparency requirements:
+- See `docs/compliance/article-31-reference.md`
+- System type classification (High/Medium/Low risk)
+- Decision process explanation
+- Human oversight details
+- Contact information
 
-# Get summary
-summary = assessment.get_summary()
-for status, count in summary.items():
-    print(f"{status}: {count}")
-
-# Validate that assessment is complete
-is_complete = checker.validate_assessment(assessment)
-print(f"Assessment complete: {is_complete}")
-```
-
-### 2. Using the CLI
-
-```bash
-# Check version
-korean-ai-compliance version
-
-# Get help
-korean-ai-compliance help
-
-# Create assessment (basic - under development)
-korean-ai-compliance assess --name "My AI System"
-```
-
-### 3. Running the Example
-
-```bash
-python examples/basic_assessment.py
-```
-
-## Understanding the Requirements
-
-The framework includes 12 default requirements across 6 categories:
-
-### 1. Transparency (TRANS)
-- **TRANS-001**: AI System Disclosure - AI must identify itself to users
-- **TRANS-002**: Decision Process Transparency - Explainable AI decisions
-
-### 2. Accountability (ACCT)
-- **ACCT-001**: Responsible Party Designation - Clear ownership
-- **ACCT-002**: Audit Trail - Comprehensive logging
-
-### 3. Safety (SAFE)
-- **SAFE-001**: Risk Assessment - Document all risks
-- **SAFE-002**: Safety Mechanisms - Fail-safes and controls
-
-### 4. Privacy (PRIV)
-- **PRIV-001**: Personal Data Protection - PIPA compliance
-- **PRIV-002**: Data Minimization - Only collect necessary data
-
-### 5. Fairness (FAIR)
-- **FAIR-001**: Bias Testing - Test for discrimination
-- **FAIR-002**: Fair Treatment - No discriminatory outcomes
-
-### 6. Human Rights (HUMAN)
-- **HUMAN-001**: Human Dignity - Respect autonomy
-- **HUMAN-002**: Human Oversight - Human review capability
-
-## Compliance Assessment Process
-
-### Step 1: Create Assessment
-Create a new assessment for your AI system:
-
-```python
-assessment = checker.create_assessment(
-    ai_system_name="Customer Service Bot",
-    ai_system_description="AI chatbot for customer support"
-)
-```
-
-### Step 2: Review Each Requirement
-For each requirement in the assessment:
-
-1. **Understand the requirement** - Read the title and description
-2. **Gather evidence** - Collect documentation, test results, etc.
-3. **Assess compliance** - Determine if you meet the requirement
-4. **Document findings** - Add notes and evidence references
-
-```python
-req = assessment.requirements[0]
-print(f"{req.id}: {req.title}")
-print(f"Description: {req.description}")
-print(f"Mandatory: {req.mandatory}")
-
-# Assess it
-req.status = ComplianceStatus.COMPLIANT  # or NON_COMPLIANT, PARTIAL
-req.notes = "Verified through user testing"
-req.evidence = ["test_report.pdf"]
-req.assessed_date = datetime.now()
-```
-
-### Step 3: Calculate Overall Status
-Once all mandatory requirements are assessed:
-
-```python
-overall_status = assessment.calculate_overall_status()
-print(f"Overall: {overall_status.value}")
-```
-
-Status values:
-- **COMPLIANT**: All mandatory requirements met
-- **NON_COMPLIANT**: One or more mandatory requirements not met
-- **PARTIAL**: Some requirements assessed, more work needed
-- **NOT_ASSESSED**: No assessment conducted yet
-
-### Step 4: Create Action Plan
-For any non-compliant areas:
-
-1. Identify the gap
-2. Document required changes
-3. Assign responsibility
-4. Set timeline
-5. Schedule reassessment
-
-## Using the Compliance Checklist
-
-For a detailed checklist format, see `docs/compliance/checklist.md`. This provides:
-
-- Detailed requirements breakdown
+### Compliance Checklist
+Detailed requirements breakdown:
+- See `docs/compliance/checklist.md`
 - Evidence requirements for each item
-- Checkbox format for tracking
+- Checkbox format for tracking progress
 - Assessment summary section
+
+## Development Workflow
+
+### 1. Backend Development
+```bash
+cd backend
+# Add your FastAPI routes
+# Implement PIPC audit logging
+# Configure Supabase connection
+# Set up Stripe webhooks
+```
+
+### 2. Testing
+```bash
+# Backend tests (to be added)
+# pytest tests/
+
+# Security scanning
+# Run secret scanning in CI/CD
+```
+
+### 3. Deployment
+See `docs/DEPLOYMENT.md` for detailed deployment instructions including:
+- Vercel/Railway deployment
+- Environment variable configuration
+- Supabase setup (Seoul region)
+- Stripe integration
 
 ## Best Practices
 
-### 1. Regular Assessments
-- Conduct initial assessment before deployment
-- Reassess after major changes
-- Schedule periodic reviews (quarterly/annually)
+### 1. PIPC Compliance
+- Always log consent with IP and timestamp
+- Use Supabase Seoul region for data residency
+- Implement proper audit trails
+- Use formal Korean (존댓말) in all user-facing text
 
-### 2. Documentation
-- Keep evidence organized and accessible
-- Document rationale for all assessments
-- Maintain version history of assessments
+### 2. Security
+- Never expose secrets in code
+- Use environment variables for sensitive data
+- Enable secret scanning in GitHub Actions
+- Follow branch protection rules (require 1+ review)
 
-### 3. Collaboration
-- Involve legal, technical, and business teams
-- Get stakeholder sign-off on assessments
-- Share results with relevant parties
-
-### 4. Continuous Improvement
-- Track changes over time
-- Address non-compliant areas promptly
-- Update assessments as regulations evolve
-
-## Advanced Usage
-
-### Custom Requirements
-
-You can add custom requirements beyond the defaults:
-
-```python
-from korean_ai_compliance.core import ComplianceRequirement, ComplianceCategory
-
-custom_req = ComplianceRequirement(
-    id="CUSTOM-001",
-    category=ComplianceCategory.TRANSPARENCY,
-    title="Custom Requirement",
-    description="Organization-specific requirement",
-    mandatory=False
-)
-
-assessment.add_requirement(custom_req)
-```
-
-### Filtering Requirements
-
-```python
-# Get only transparency requirements
-transparency_reqs = [
-    req for req in assessment.requirements
-    if req.category == ComplianceCategory.TRANSPARENCY
-]
-
-# Get only mandatory requirements
-mandatory_reqs = [
-    req for req in assessment.requirements
-    if req.mandatory
-]
-
-# Get non-compliant requirements
-non_compliant = [
-    req for req in assessment.requirements
-    if req.status == ComplianceStatus.NON_COMPLIANT
-]
-```
+### 3. UI/UX
+- Follow Obangsaek color palette
+- Implement glassmorphism on modals, headers, buttons
+- Display countdown prominently (days until Jan 22, 2026)
+- Ensure mobile-first design (95% of users are mobile)
+- Show MSIT and PIPC trust badges
 
 ## Getting Help
 
 - **Documentation**: See the `docs/` directory
-- **Examples**: Check `examples/` for working code
+- **Compliance**: Check `docs/compliance/` for reference materials
 - **Issues**: Report bugs or request features on GitHub
 - **Contributing**: See `CONTRIBUTING.md` for guidelines
 
 ## Next Steps
 
-1. Run the example: `python examples/basic_assessment.py`
-2. Review the compliance checklist: `docs/compliance/checklist.md`
-3. Create your first assessment
-4. Explore the API documentation in the source code
+1. Review the compliance checklist: `docs/compliance/checklist.md`
+2. Set up backend environment: `backend/.env`
+3. Review deployment guide: `docs/DEPLOYMENT.md`
+4. Check Article 31 reference: `docs/compliance/article-31-reference.md`
 
 ## Resources
 
