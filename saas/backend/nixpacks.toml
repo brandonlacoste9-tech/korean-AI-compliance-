@@ -1,0 +1,23 @@
+# Nixpacks Configuration for FastAPI Backend
+# Deploy this separately from the frontend
+
+[phases.setup]
+nixPkgs = ["python310", "pip"]
+
+[phases.install]
+cmds = [
+  "pip install --upgrade pip",
+  "pip install -r requirements.txt"
+]
+
+[start]
+cmd = "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+
+[variables]
+PYTHON_VERSION = "3.10"
+PORT = "8000"
+
+# Environment variables needed (set these in your deployment platform):
+# DATABASE_URL
+# RESEND_API_KEY
+# STRIPE_SECRET_KEY (for webhook verification)
