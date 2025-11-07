@@ -56,10 +56,6 @@ Issues = "https://github.com/brandonlacoste9-tech/korean-AI-compliance-/issues"
 # These are separate applications with their own build systems
 packages = []
 
-[tool.setuptools.packages.find]
-where = []
-exclude = ["backend*", "frontend*", "docs*"]
-
 [tool.black]
 line-length = 100
 target-version = ['py38', 'py39', 'py310', 'py311']
