@@ -2,7 +2,7 @@
 nixPkgs = ["python311", "python311Packages.pip", "python311Packages.virtualenv"]
 
 [phases.install]
-cmds = ["python -m pip install --upgrade pip --break-system-packages", "python -m pip install . --break-system-packages"]
+cmds = ["pip install --upgrade pip --break-system-packages", "pip install . --break-system-packages"]
 
 [start]
 cmd = "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
