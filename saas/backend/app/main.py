@@ -4,13 +4,17 @@ from sqlmodel import SQLModel, Field, create_engine, Session, select
 from dotenv import load_dotenv
 import os
 from datetime import datetime
+from api.email_campaign import router as email_router
 
 load_dotenv()
 
 app = FastAPI(title="AI Compliance Guardian SaaS", version="1.0.0")
 
+# Include email campaign router
+app.include_router(email_router, prefix="/v1/email", tags=["Email Campaigns"])
+
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./compliance.db")
-gine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(DATABASE_URL, echo=True)
 
 class Regulation(BaseModel):
     source: str
