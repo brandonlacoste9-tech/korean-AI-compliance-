@@ -35,6 +35,7 @@ async def health_check():
 
 # Risk assessment endpoint
 @app.post("/v1/assessments")
+@app.post("/api/risk-assessment")
 async def create_risk_assessment(request: AssessmentRequest):
     # Calculate risk score
     risk_score = 0
