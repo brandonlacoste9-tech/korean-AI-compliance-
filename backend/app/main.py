@@ -34,7 +34,7 @@ async def health_check():
     return {"status": "healthy", "service": "AI Compliance Guardian API"}
 
 # Risk assessment endpoint
-@app.post("/api/risk-assessment")
+@app.post("/v1/assessments")
 async def create_risk_assessment(request: AssessmentRequest):
     # Calculate risk score
     risk_score = 0
