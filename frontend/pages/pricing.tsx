@@ -103,15 +103,28 @@ export default function Pricing() {
     }
 
     try {
-      // TODO: Implement Stripe checkout
-      // For now, redirect to Stripe integration endpoint
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      if (tier.stripeLink) {
-        window.location.href = tier.stripeLink;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+      // Call backend to create Stripe checkout session
+      const response = await axios.post(`${apiUrl}/api/stripe/create-checkout`, {
+        plan: tier.id,
+        currency: 'krw'  // Default to KRW, can be made dynamic
+      });
+
+      if (response.data.success && response.data.checkout_url) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.checkout_url;
+      } else if (response.data.message) {
+        // Free plan or other message
+        alert(response.data.message);
       }
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Checkout is coming soon! Please contact us for early access.');
+      if (axios.isAxiosError(error) && error.response) {
+        alert(`Error: ${error.response.data.detail || 'Failed to create checkout session'}`);
+      } else {
+        alert('Failed to start checkout. Please try again or contact support.');
+      }
     }
   };
 

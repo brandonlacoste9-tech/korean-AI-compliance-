@@ -5,8 +5,16 @@ from typing import Optional, Dict, Any
 import os
 import sys
 from datetime import datetime
+import stripe
 from app.logging_config import setup_logging, get_logger
 from app.middleware import RequestLoggingMiddleware, ErrorHandlingMiddleware
+
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
+# Initialize Stripe
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 # Setup logging (JSON format in production, readable format in development)
 is_production = os.getenv("ENVIRONMENT", "development") == "production"
@@ -160,13 +168,11 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
         )
         raise HTTPException(status_code=500, detail="Risk assessment failed")
 
-# Stripe checkout endpoint (simplified for now)
+# Stripe checkout endpoint
 @app.post("/api/stripe/create-checkout")
 async def create_checkout(request: CheckoutRequest, req: Request):
     """
-    Create Stripe checkout session.
-
-    Currently simplified - full Stripe integration pending.
+    Create Stripe checkout session for paid plans.
     """
     logger.info(
         "Checkout requested",
@@ -179,20 +185,75 @@ async def create_checkout(request: CheckoutRequest, req: Request):
         },
     )
 
+    # Price mapping (in KRW cents for Stripe)
     prices = {
-        "starter": {"krw": 0},
-        "professional": {"krw": 39000000}
+        "starter": {"krw": 12900000, "usd": 9900},  # $99 or ₩129,000
+        "professional": {"krw": 39000000, "usd": 29900}  # $299 or ₩390,000
     }
 
-    amount = prices.get(request.plan, {}).get(request.currency, 0)
+    plan_data = prices.get(request.plan)
+    if not plan_data:
+        raise HTTPException(status_code=400, detail="Invalid plan selected")
 
-    if amount == 0:
+    amount = plan_data.get(request.currency, 0)
+
+    # Free plan or starter trial
+    if amount == 0 or request.plan == "starter_trial":
         logger.info("Free plan selected", extra={"extra_fields": {"plan": request.plan}})
-        return {"message": "Free plan - no payment required"}
+        return {"message": "Free plan - no payment required", "success": True}
 
-    logger.info(
-        "Paid plan selected - Stripe integration pending",
-        extra={"extra_fields": {"plan": request.plan, "amount": amount, "currency": request.currency}},
-    )
+    try:
+        # Create Stripe Checkout Session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": request.currency,
+                        "unit_amount": amount,
+                        "recurring": {"interval": "month"},
+                        "product_data": {
+                            "name": f"AI Compliance Guardian - {request.plan.capitalize()} Plan",
+                            "description": f"Korean AI Act compliance for {request.plan} tier",
+                        },
+                    },
+                    "quantity": 1,
+                },
+            ],
+            mode="subscription",
+            success_url=os.getenv("FRONTEND_URL", "http://localhost:3000") + "/success?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=os.getenv("FRONTEND_URL", "http://localhost:3000") + "/cancel",
+            metadata={
+                "plan": request.plan,
+                "currency": request.currency,
+            },
+        )
 
-    return {"message": "Checkout endpoint - Stripe integration coming soon"}
+        logger.info(
+            "Stripe checkout session created",
+            extra={"extra_fields": {
+                "plan": request.plan,
+                "amount": amount,
+                "currency": request.currency,
+                "session_id": checkout_session.id
+            }},
+        )
+
+        return {
+            "checkout_url": checkout_session.url,
+            "session_id": checkout_session.id,
+            "success": True
+        }
+
+    except stripe.error.StripeError as e:
+        logger.error(
+            f"Stripe error: {str(e)}",
+            extra={"extra_fields": {"plan": request.plan, "error": str(e)}},
+        )
+        raise HTTPException(status_code=500, detail=f"Payment processing error: {str(e)}")
+    except Exception as e:
+        logger.error(
+            f"Checkout error: {str(e)}",
+            extra={"extra_fields": {"plan": request.plan, "error": str(e)}},
+        )
+        raise HTTPException(status_code=500, detail="Failed to create checkout session")
