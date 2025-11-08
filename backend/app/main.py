@@ -191,10 +191,10 @@ async def create_checkout(request: CheckoutRequest, req: Request):
         },
     )
 
-    # Price mapping (in KRW cents for Stripe)
+    # Price mapping (KRW has no decimal places, USD in cents)
     prices = {
-        "starter": {"krw": 12900000, "usd": 9900},  # $99 or ₩129,000
-        "professional": {"krw": 39000000, "usd": 29900}  # $299 or ₩390,000
+        "starter": {"krw": 129000, "usd": 9900},  # $99 or ₩129,000
+        "professional": {"krw": 390000, "usd": 29900}  # $299 or ₩390,000
     }
 
     plan_data = prices.get(request.plan)
