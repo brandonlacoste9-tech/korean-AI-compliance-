@@ -32,6 +32,9 @@ const Header: React.FC = () => {
             <Link href="/pricing" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
               {t('header.pricing')}
             </Link>
+            <Link href="/faq" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
+              FAQ
+            </Link>
             <a href="#contact" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
               {t('header.contact')}
             </a>
