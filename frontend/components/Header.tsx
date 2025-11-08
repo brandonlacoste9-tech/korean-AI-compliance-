@@ -29,9 +29,9 @@ const Header: React.FC = () => {
             <Link href="/services" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
               {t('header.services')}
             </Link>
-            <a href="#pricing" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
+            <Link href="/pricing" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
               {t('header.pricing')}
-            </a>
+            </Link>
             <a href="#contact" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
               {t('header.contact')}
             </a>
