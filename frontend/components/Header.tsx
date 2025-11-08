@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 const Header: React.FC = () => {
   const { t, i18n } = useTranslation('common');
@@ -22,12 +23,12 @@ const Header: React.FC = () => {
           </div>
 
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="#home" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
+            <Link href="/" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
               {t('header.home')}
-            </a>
-            <a href="#services" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
+            </Link>
+            <Link href="/services" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
               {t('header.services')}
-            </a>
+            </Link>
             <a href="#pricing" className="text-obangsaek-heuk hover:text-obangsaek-cheong transition">
               {t('header.pricing')}
             </a>
