@@ -7,10 +7,11 @@ import os
 # Initialize FastAPI app
 app = FastAPI(title="AI Compliance Guardian API")
 
-# CORS - allow your Vercel frontend
+# CORS - allow your Vercel frontend (production + all preview deployments)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://korean-ai-compliance.vercel.app", "https://korean-ai-compliance-git-copilot-check-fast-83d90e-bee-4eb0fd80.vercel.app", "http://localhost:3000"],
+    allow_origins=["http://localhost:3000"],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
