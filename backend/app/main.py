@@ -37,10 +37,16 @@ app.add_middleware(RequestLoggingMiddleware)
 
 logger.info(f"Starting AI Compliance Guardian API (Python {sys.version})")
 
-# CORS - allow your Vercel frontend (production + all preview deployments)
+# CORS - allow your Vercel frontend (production + all preview deployments) and localhost
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3002",
+        "http://localhost:3003",
+        "http://localhost:3004",
+    ],
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
