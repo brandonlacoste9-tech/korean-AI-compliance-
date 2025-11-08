@@ -1,6 +1,6 @@
 ﻿from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Dict, Any
 import os
 import sys
@@ -41,10 +41,17 @@ app.add_middleware(
 
 # Request models
 class AssessmentRequest(BaseModel):
-    company_name: str
+    """Risk assessment request with field aliases for frontend compatibility."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    company_name: str = Field(..., alias="companyName")
     email: str
-    ai_usage: str
-    processes_personal_data: bool
+    ai_usage: str = Field(..., alias="aiUsage")
+    processes_personal_data: bool = Field(..., alias="processesPersonalData")
+    timestamp: Optional[str] = None
+    consent_given: Optional[bool] = Field(default=None, alias="consentGiven")
+    locale: Optional[str] = None
 
 class CheckoutRequest(BaseModel):
     plan: str
