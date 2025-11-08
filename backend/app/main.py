@@ -1,11 +1,33 @@
-﻿from fastapi import FastAPI, HTTPException
+﻿from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, Any
 import os
+import sys
+from datetime import datetime
+from app.logging_config import setup_logging, get_logger
+from app.middleware import RequestLoggingMiddleware, ErrorHandlingMiddleware
+
+# Setup logging (JSON format in production, readable format in development)
+is_production = os.getenv("ENVIRONMENT", "development") == "production"
+log_level = os.getenv("LOG_LEVEL", "INFO")
+setup_logging(log_level=log_level, json_logs=is_production)
+
+# Get logger for this module
+logger = get_logger(__name__)
 
 # Initialize FastAPI app
-app = FastAPI(title="AI Compliance Guardian API")
+app = FastAPI(
+    title="AI Compliance Guardian API",
+    version="1.0.0",
+    description="Korean AI Compliance Risk Assessment API"
+)
+
+# Add middleware (order matters - they execute in reverse order of addition)
+app.add_middleware(ErrorHandlingMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+
+logger.info(f"Starting AI Compliance Guardian API (Python {sys.version})")
 
 # CORS - allow your Vercel frontend (production + all preview deployments)
 app.add_middleware(
@@ -28,43 +50,142 @@ class CheckoutRequest(BaseModel):
     plan: str
     currency: str = "krw"
 
-# Health check endpoint
+# Startup time for uptime calculation
+startup_time = datetime.utcnow()
+
+# Health check endpoint with detailed metrics
 @app.get("/")
 @app.get("/health")
-async def health_check():
-    return {"status": "healthy", "service": "AI Compliance Guardian API"}
+async def health_check(request: Request) -> Dict[str, Any]:
+    """
+    Health check endpoint with system metrics.
+
+    Returns service status, version, uptime, and system information.
+    """
+    uptime_seconds = (datetime.utcnow() - startup_time).total_seconds()
+
+    health_data = {
+        "status": "healthy",
+        "service": "AI Compliance Guardian API",
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "uptime_seconds": round(uptime_seconds, 2),
+        "environment": os.getenv("ENVIRONMENT", "development"),
+        "python_version": sys.version.split()[0],
+        "endpoints": {
+            "risk_assessment": "/v1/assessments",
+            "health": "/health",
+            "docs": "/docs"
+        }
+    }
+
+    logger.debug("Health check requested", extra={"extra_fields": {"uptime": uptime_seconds}})
+
+    return health_data
 
 # Risk assessment endpoint
 @app.post("/v1/assessments")
 @app.post("/api/risk-assessment")
-async def create_risk_assessment(request: AssessmentRequest):
-    # Calculate risk score
-    risk_score = 0
-    
-    if "facial recognition" in request.ai_usage.lower():
-        risk_score += 40
-    if "surveillance" in request.ai_usage.lower():
-        risk_score += 30
-    if request.processes_personal_data:
-        risk_score += 30
-    
-    return {
-        "risk_score": risk_score,
-        "recommendation": "professional" if risk_score >= 50 else "starter",
-        "company_name": request.company_name
-    }
+async def create_risk_assessment(request: AssessmentRequest, req: Request):
+    """
+    Assess AI compliance risk based on usage and data processing.
+
+    Calculates risk score and provides compliance recommendations.
+    """
+    logger.info(
+        "Risk assessment requested",
+        extra={
+            "extra_fields": {
+                "company": request.company_name,
+                "ai_usage": request.ai_usage[:50],  # Truncate for logging
+                "processes_personal_data": request.processes_personal_data,
+                "client_ip": req.client.host if req.client else None,
+            }
+        },
+    )
+
+    try:
+        # Calculate risk score
+        risk_score = 0
+
+        if "facial recognition" in request.ai_usage.lower():
+            risk_score += 40
+            logger.debug("Facial recognition detected", extra={"extra_fields": {"company": request.company_name}})
+
+        if "surveillance" in request.ai_usage.lower():
+            risk_score += 30
+            logger.debug("Surveillance detected", extra={"extra_fields": {"company": request.company_name}})
+
+        if request.processes_personal_data:
+            risk_score += 30
+            logger.debug("Personal data processing detected", extra={"extra_fields": {"company": request.company_name}})
+
+        recommendation = "professional" if risk_score >= 50 else "starter"
+
+        result = {
+            "risk_score": risk_score,
+            "recommendation": recommendation,
+            "company_name": request.company_name,
+        }
+
+        logger.info(
+            "Risk assessment completed",
+            extra={
+                "extra_fields": {
+                    "company": request.company_name,
+                    "risk_score": risk_score,
+                    "recommendation": recommendation,
+                }
+            },
+        )
+
+        return result
+
+    except Exception as e:
+        logger.error(
+            f"Risk assessment failed: {str(e)}",
+            extra={
+                "extra_fields": {
+                    "company": request.company_name,
+                    "error": str(e),
+                }
+            },
+        )
+        raise HTTPException(status_code=500, detail="Risk assessment failed")
 
 # Stripe checkout endpoint (simplified for now)
 @app.post("/api/stripe/create-checkout")
-async def create_checkout(request: CheckoutRequest):
+async def create_checkout(request: CheckoutRequest, req: Request):
+    """
+    Create Stripe checkout session.
+
+    Currently simplified - full Stripe integration pending.
+    """
+    logger.info(
+        "Checkout requested",
+        extra={
+            "extra_fields": {
+                "plan": request.plan,
+                "currency": request.currency,
+                "client_ip": req.client.host if req.client else None,
+            }
+        },
+    )
+
     prices = {
         "starter": {"krw": 0},
         "professional": {"krw": 39000000}
     }
-    
-    amount = prices[request.plan][request.currency]
-    
+
+    amount = prices.get(request.plan, {}).get(request.currency, 0)
+
     if amount == 0:
+        logger.info("Free plan selected", extra={"extra_fields": {"plan": request.plan}})
         return {"message": "Free plan - no payment required"}
-    
+
+    logger.info(
+        "Paid plan selected - Stripe integration pending",
+        extra={"extra_fields": {"plan": request.plan, "amount": amount, "currency": request.currency}},
+    )
+
     return {"message": "Checkout endpoint - Stripe integration coming soon"}
