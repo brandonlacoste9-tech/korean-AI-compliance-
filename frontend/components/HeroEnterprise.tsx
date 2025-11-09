@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export const HeroEnterprise = () => (
   <section className="min-h-screen bg-bgPrimary text-textLight font-sans flex flex-col justify-center px-6 sm:px-12 lg:px-24">
@@ -7,12 +8,12 @@ export const HeroEnterprise = () => (
       AI 기본법(2026)에 대비한 기업용 리스크 평가 및 준수 플랫폼
     </p>
     <div className="mt-8">
-      <a
+      <Link
         href="/"
         className="inline-block bg-accentYellow text-black py-3 px-8 rounded-md font-medium hover:bg-yellow-500 transition"
       >
         무료 리스크 평가 시작하기
-      </a>
+      </Link>
     </div>
   </section>
 );

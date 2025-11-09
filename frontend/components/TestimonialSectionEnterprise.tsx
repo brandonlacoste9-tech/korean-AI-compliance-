@@ -27,7 +27,7 @@ export const TestimonialSectionEnterprise = () => (
     <div className="grid md:grid-cols-3 gap-8">
       {testimonials.map((t, idx) => (
         <div key={idx} className="bg-bgCard p-6 rounded-md border border-gray-700">
-          <p className="italic mb-4">"{t.quote}"</p>
+          <p className="italic mb-4">&ldquo;{t.quote}&rdquo;</p>
           <p className="font-semibold">{t.name}, {t.role} — {t.company}</p>
         </div>
       ))}
