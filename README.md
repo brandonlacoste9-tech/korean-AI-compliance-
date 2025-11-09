@@ -44,3 +44,4 @@ Status: MVP deployment in progress
 ---
 
 Countdown: Only 77 days left until compliance cutoff (Jan 22, 2026)
+<!-- Last deployment trigger: 2025-11-09 04:28:46 -->
