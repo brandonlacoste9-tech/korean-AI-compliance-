@@ -172,3 +172,4 @@ yarn-debug.log*
 yarn-error.log*
 yarn.lock
 pnpm-lock.yaml
+backend/render-mcp-server/
