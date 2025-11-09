@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
+import Link from 'next/link';
 import Header from '@/components/Header';
 
 interface ChecklistItem {
@@ -538,18 +539,18 @@ export default function ChecklistPage() {
                     : 'Manage your entire checklist automatically with AI Compliance Guardian'}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <a
+                  <Link
                     href="/assessment"
                     className="inline-block px-8 py-4 bg-white text-obangsaek-cheong rounded-lg font-bold text-lg hover:shadow-xl transition-all"
                   >
                     {language === 'ko' ? '무료 평가 시작 →' : 'Start Free Assessment →'}
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="/pricing"
                     className="inline-block px-8 py-4 bg-obangsaek-nokdusaek text-white rounded-lg font-bold text-lg hover:shadow-xl transition-all"
                   >
                     {language === 'ko' ? '요금제 보기' : 'View Pricing'}
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
