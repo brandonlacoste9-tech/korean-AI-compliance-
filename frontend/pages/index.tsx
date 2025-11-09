@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { HomeSEO } from '@/components/SEO';
 import { Analytics, trackConversion } from '@/components/Analytics';
 import { usePerformance } from '@/hooks/usePerformance';
+import RiskAssessment from '@/components/RiskAssessment';
 
 export default function Home2026() {
   const { t } = useTranslation('common');
@@ -101,7 +102,10 @@ export default function Home2026() {
                 >
                   🚀 무료 위험도 평가 시작
                 </button>
-                <button className="px-8 py-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-2 border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400 font-bold text-lg rounded-full hover:bg-blue-50 dark:hover:bg-gray-700 transition-all">
+                <button 
+                  onClick={() => window.location.href = '/services'}
+                  className="px-8 py-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-2 border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400 font-bold text-lg rounded-full hover:bg-blue-50 dark:hover:bg-gray-700 transition-all"
+                >
                   📋 준법 가이드 보기
                 </button>
               </div>
@@ -153,6 +157,15 @@ export default function Home2026() {
           </div>
         </section>
 
+        {/* Risk Assessment Section */}
+        <section id="risk-assessment" className="py-20 bg-white dark:bg-gray-900">
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto">
+              <RiskAssessment />
+            </div>
+          </div>
+        </section>
+
         {/* Pricing Section */}
         <section id="pricing" className="py-20 bg-gray-50 dark:bg-gray-800">
           <div className="container mx-auto px-4">
@@ -184,7 +197,10 @@ export default function Home2026() {
                       </li>
                     ))}
                   </ul>
-                  <button className={`w-full py-3 rounded-full font-bold ${plan.popular ? 'bg-white text-blue-600' : 'bg-blue-600 text-white hover:bg-blue-700'} transition-all`}>
+                  <button 
+                    onClick={() => window.location.href = '/pricing'}
+                    className={`w-full py-3 rounded-full font-bold ${plan.popular ? 'bg-white text-blue-600 hover:bg-gray-100' : 'bg-blue-600 text-white hover:bg-blue-700'} transition-all`}
+                  >
                     시작하기 →
                   </button>
                 </div>
