@@ -28,7 +28,8 @@ logger = get_logger(__name__)
 app = FastAPI(
     title="AI Compliance Guardian API",
     version="1.0.0",
-    description="Korean AI Compliance Risk Assessment API"
+    description="Korean AI Compliance Risk Assessment API",
+    redirect_slashes=False  # Prevent POST → GET conversion on trailing slash redirects
 )
 
 # Add middleware (order matters - they execute in reverse order of addition)
