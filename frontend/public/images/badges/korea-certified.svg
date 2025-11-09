@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Korean Certification Badge with Taegeuk -->
+  <defs>
+    <linearGradient id="kr-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#CD2E3A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9E1B32;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Outer circle -->
+  <circle cx="100" cy="100" r="95" fill="url(#kr-gradient)" filter="url(#shadow)"/>
+
+  <!-- Inner decorative circle -->
+  <circle cx="100" cy="100" r="85" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.3"/>
+
+  <!-- Simplified Taegeuk (Korean yin-yang) -->
+  <circle cx="100" cy="95" r="35" fill="#ffffff" opacity="0.95"/>
+  <path d="M 100 60 A 35 35 0 0 1 100 130 A 17.5 17.5 0 0 1 100 95 A 17.5 17.5 0 0 0 100 60"
+        fill="#0047AB"/>
+
+  <!-- Star for certification -->
+  <polygon points="100,130 105,145 120,147 110,157 113,172 100,165 87,172 90,157 80,147 95,145"
+           fill="#FFD700" stroke="#ffffff" stroke-width="1"/>
+
+  <!-- Korean text -->
+  <text x="100" y="183" font-family="'Noto Sans KR', sans-serif" font-size="16"
+        font-weight="700" fill="#ffffff" text-anchor="middle">대한민국 인증</text>
+</svg>

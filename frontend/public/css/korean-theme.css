@@ -1,0 +1,491 @@
+/**
+ * Korean AI Compliance Guardian - Korean Design System
+ * Professional Korean enterprise aesthetic
+ *
+ * Design Principles:
+ * - Seoul-inspired color palette
+ * - Korean government official colors
+ * - Noto Sans KR typography (official Korean web font)
+ * - Trust-building visual hierarchy
+ * - Mobile-first responsive design
+ */
+
+/* ====================
+   KOREAN COLOR PALETTE
+   ==================== */
+
+:root {
+  /* Korean Government Official Colors */
+  --kr-gov-blue: #0047AB;
+  --kr-gov-blue-dark: #003380;
+  --kr-gov-blue-light: #3B7DD7;
+
+  /* Korean Flag Colors */
+  --kr-flag-red: #CD2E3A;
+  --kr-flag-blue: #003478;
+
+  /* Seoul City Brand Colors */
+  --seoul-primary: #004098;
+  --seoul-secondary: #00A99D;
+  --seoul-accent: #FFA500;
+
+  /* Trust & Authority Colors */
+  --kr-trust-green: #2E7D32;
+  --kr-warning-orange: #FF6F00;
+  --kr-error-red: #C62828;
+  --kr-success-green: #1B5E20;
+
+  /* Neutral Korean Palette */
+  --kr-white: #FFFFFF;
+  --kr-off-white: #F8F9FA;
+  --kr-light-gray: #E9ECEF;
+  --kr-gray: #ADB5BD;
+  --kr-dark-gray: #495057;
+  --kr-black: #212529;
+
+  /* Glass-morphism */
+  --kr-glass-bg: rgba(255, 255, 255, 0.1);
+  --kr-glass-border: rgba(255, 255, 255, 0.2);
+
+  /* Shadows */
+  --kr-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --kr-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --kr-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --kr-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+
+  /* Korean Typography */
+  --kr-font-korean: 'Noto Sans KR', sans-serif;
+  --kr-font-english: 'Inter', 'Roboto', sans-serif;
+  --kr-font-mono: 'Noto Sans Mono', monospace;
+}
+
+/* ====================
+   TYPOGRAPHY
+   ==================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+  font-family: var(--kr-font-korean);
+  color: var(--kr-black);
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+/* Korean text needs slightly more line-height */
+.korean-text {
+  line-height: 1.8;
+  letter-spacing: -0.02em;
+}
+
+/* English text */
+.english-text {
+  font-family: var(--kr-font-english);
+  letter-spacing: -0.01em;
+}
+
+/* Headings - Korean style (더 굵게, 더 크게) */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--kr-font-korean);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--kr-gov-blue-dark);
+}
+
+h1 { font-size: 2.5rem; font-weight: 900; }
+h2 { font-size: 2rem; font-weight: 700; }
+h3 { font-size: 1.75rem; font-weight: 700; }
+h4 { font-size: 1.5rem; font-weight: 600; }
+h5 { font-size: 1.25rem; font-weight: 600; }
+h6 { font-size: 1rem; font-weight: 600; }
+
+/* ====================
+   SEOUL-INSPIRED BACKGROUNDS
+   ==================== */
+
+.kr-hero-bg {
+  background: linear-gradient(135deg,
+    var(--kr-gov-blue) 0%,
+    var(--kr-gov-blue-dark) 50%,
+    #001F5C 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated Seoul skyline effect */
+.kr-hero-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(59, 125, 215, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 30%, rgba(0, 168, 157, 0.2) 0%, transparent 50%);
+  animation: kr-glow 8s ease-in-out infinite;
+}
+
+@keyframes kr-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+/* Namsan Tower inspired accent */
+.kr-accent-tower {
+  position: relative;
+}
+
+.kr-accent-tower::after {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: 10%;
+  width: 2px;
+  height: 100px;
+  background: linear-gradient(to bottom,
+    transparent,
+    var(--seoul-accent) 50%,
+    transparent
+  );
+  animation: kr-tower-blink 3s ease-in-out infinite;
+}
+
+@keyframes kr-tower-blink {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* ====================
+   GLASS-MORPHISM (Korean Style)
+   ==================== */
+
+.kr-glass {
+  background: var(--kr-glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--kr-glass-border);
+  border-radius: 16px;
+  box-shadow: var(--kr-shadow-lg);
+}
+
+.kr-glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: var(--kr-shadow-xl);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.kr-glass-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px rgba(0, 71, 171, 0.2);
+}
+
+/* ====================
+   KOREAN CERTIFICATION BADGES
+   ==================== */
+
+.kr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--kr-glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--kr-glass-border);
+  border-radius: 50px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--kr-white);
+  box-shadow: var(--kr-shadow-md);
+  transition: all 0.3s ease;
+}
+
+.kr-badge:hover {
+  transform: scale(1.05);
+  box-shadow: var(--kr-shadow-lg);
+}
+
+.kr-badge-msit {
+  background: linear-gradient(135deg, var(--kr-gov-blue), var(--kr-gov-blue-dark));
+}
+
+.kr-badge-pipc {
+  background: linear-gradient(135deg, var(--kr-trust-green), var(--kr-success-green));
+}
+
+.kr-badge-korea {
+  background: linear-gradient(135deg, var(--kr-flag-red), #9E1B32);
+}
+
+/* Badge with icon */
+.kr-badge img {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* ====================
+   COUNTDOWN TIMER (Korean Style)
+   ==================== */
+
+.kr-countdown {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.kr-countdown-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: var(--kr-glass-bg);
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  box-shadow:
+    var(--kr-shadow-lg),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
+  min-width: 100px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.kr-countdown-item:hover {
+  transform: translateY(-10px) scale(1.05);
+  border-color: rgba(255, 215, 0, 0.6);
+  box-shadow:
+    0 20px 40px rgba(0, 71, 171, 0.3),
+    inset 0 0 30px rgba(255, 215, 0, 0.2);
+}
+
+.kr-countdown-number {
+  font-size: 3rem;
+  font-weight: 900;
+  font-family: var(--kr-font-mono);
+  color: var(--kr-white);
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.kr-countdown-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Korean label styling */
+.kr-countdown-label.korean {
+  font-size: 1rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ====================
+   BUTTONS (Korean Government Style)
+   ==================== */
+
+.kr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  font-family: var(--kr-font-korean);
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  box-shadow: var(--kr-shadow-md);
+}
+
+.kr-btn-primary {
+  background: linear-gradient(135deg, var(--kr-gov-blue), var(--kr-gov-blue-dark));
+  color: var(--kr-white);
+}
+
+.kr-btn-primary:hover {
+  background: linear-gradient(135deg, var(--kr-gov-blue-light), var(--kr-gov-blue));
+  transform: translateY(-2px);
+  box-shadow: var(--kr-shadow-lg);
+}
+
+.kr-btn-secondary {
+  background: var(--kr-white);
+  color: var(--kr-gov-blue);
+  border: 2px solid var(--kr-gov-blue);
+}
+
+.kr-btn-secondary:hover {
+  background: var(--kr-gov-blue);
+  color: var(--kr-white);
+  transform: translateY(-2px);
+}
+
+.kr-btn-success {
+  background: linear-gradient(135deg, var(--kr-trust-green), var(--kr-success-green));
+  color: var(--kr-white);
+}
+
+.kr-btn-warning {
+  background: linear-gradient(135deg, var(--kr-warning-orange), #F57C00);
+  color: var(--kr-white);
+}
+
+/* ====================
+   TRUST SIGNALS
+   ==================== */
+
+.kr-trust-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: rgba(46, 125, 50, 0.1);
+  border-left: 4px solid var(--kr-trust-green);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: var(--kr-dark-gray);
+}
+
+.kr-trust-icon {
+  color: var(--kr-trust-green);
+  font-size: 1.5rem;
+}
+
+/* ====================
+   RESPONSIVE DESIGN
+   ==================== */
+
+@media (max-width: 768px) {
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  h3 { font-size: 1.5rem; }
+
+  .kr-countdown {
+    gap: 1rem;
+  }
+
+  .kr-countdown-item {
+    padding: 1rem 1.5rem;
+    min-width: 80px;
+  }
+
+  .kr-countdown-number {
+    font-size: 2rem;
+  }
+
+  .kr-countdown-label {
+    font-size: 0.75rem;
+  }
+
+  .kr-glass-card {
+    padding: 1.5rem;
+  }
+}
+
+/* ====================
+   ANIMATIONS
+   ==================== */
+
+@keyframes kr-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kr-fade-in {
+  animation: kr-fade-in 0.6s ease-out;
+}
+
+@keyframes kr-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kr-slide-up {
+  animation: kr-slide-up 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Stagger animation for multiple items */
+.kr-stagger-1 { animation-delay: 0.1s; }
+.kr-stagger-2 { animation-delay: 0.2s; }
+.kr-stagger-3 { animation-delay: 0.3s; }
+.kr-stagger-4 { animation-delay: 0.4s; }
+.kr-stagger-5 { animation-delay: 0.5s; }
+
+/* ====================
+   ACCESSIBILITY
+   ==================== */
+
+.kr-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus states for Korean government accessibility standards */
+*:focus-visible {
+  outline: 3px solid var(--kr-gov-blue);
+  outline-offset: 2px;
+}
+
+/* ====================
+   UTILITY CLASSES
+   ==================== */
+
+.kr-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.kr-section {
+  padding: 4rem 0;
+}
+
+.kr-text-center { text-align: center; }
+.kr-text-left { text-align: left; }
+.kr-text-right { text-align: right; }
+
+.kr-mt-1 { margin-top: 0.5rem; }
+.kr-mt-2 { margin-top: 1rem; }
+.kr-mt-3 { margin-top: 1.5rem; }
+.kr-mt-4 { margin-top: 2rem; }
+.kr-mt-5 { margin-top: 3rem; }
+
+.kr-mb-1 { margin-bottom: 0.5rem; }
+.kr-mb-2 { margin-bottom: 1rem; }
+.kr-mb-3 { margin-bottom: 1.5rem; }
+.kr-mb-4 { margin-bottom: 2rem; }
+.kr-mb-5 { margin-bottom: 3rem; }

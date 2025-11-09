@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Korean MSIT Certification Badge -->
+  <defs>
+    <linearGradient id="msit-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0047AB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#003380;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Outer circle -->
+  <circle cx="100" cy="100" r="95" fill="url(#msit-gradient)" filter="url(#shadow)"/>
+
+  <!-- Inner decorative circle -->
+  <circle cx="100" cy="100" r="85" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.3"/>
+
+  <!-- Shield shape -->
+  <path d="M 100 35 L 140 55 L 140 100 Q 140 130 100 150 Q 60 130 60 100 L 60 55 Z"
+        fill="#ffffff" opacity="0.95"/>
+
+  <!-- Checkmark -->
+  <path d="M 80 95 L 95 110 L 120 75"
+        fill="none" stroke="#0047AB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Korean text MSIT -->
+  <text x="100" y="175" font-family="'Noto Sans KR', sans-serif" font-size="16"
+        font-weight="700" fill="#ffffff" text-anchor="middle">과기정통부</text>
+
+  <!-- English text -->
+  <text x="100" y="192" font-family="Arial, sans-serif" font-size="10"
+        font-weight="600" fill="#ffffff" text-anchor="middle" opacity="0.9">MSIT Certified</text>
+</svg>
