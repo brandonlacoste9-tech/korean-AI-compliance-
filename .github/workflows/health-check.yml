@@ -1,0 +1,191 @@
+name: Health Check Bot
+
+on:
+  schedule:
+    # Run every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  health-check:
+    name: Full Stack Health Monitoring
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Backend Health
+        id: backend
+        continue-on-error: true
+        run: |
+          echo "Testing backend endpoints..."
+          
+          # Health check
+          HEALTH_RESPONSE=$(curl -s -w "\n%{http_code}" https://korean-ai-compliance.onrender.com/healthz)
+          HEALTH_CODE=$(echo "$HEALTH_RESPONSE" | tail -n1)
+          HEALTH_BODY=$(echo "$HEALTH_RESPONSE" | head -n-1)
+          
+          if [ "$HEALTH_CODE" = "200" ]; then
+            echo "✅ Backend health: OK"
+            echo "backend_status=healthy" >> $GITHUB_OUTPUT
+            
+            # Extract uptime
+            UPTIME=$(echo "$HEALTH_BODY" | jq -r '.uptime_seconds // 0')
+            UPTIME_MIN=$(echo "scale=1; $UPTIME / 60" | bc)
+            echo "backend_uptime=${UPTIME_MIN} min" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Backend health: FAILED (HTTP $HEALTH_CODE)"
+            echo "backend_status=unhealthy" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Readiness check
+          READINESS_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://korean-ai-compliance.onrender.com/readiness)
+          if [ "$READINESS_CODE" = "200" ]; then
+            echo "✅ Backend readiness: OK"
+          else
+            echo "❌ Backend readiness: FAILED (HTTP $READINESS_CODE)"
+            exit 1
+          fi
+
+      - name: Check Frontend Health
+        id: frontend
+        continue-on-error: true
+        run: |
+          echo "Testing frontend pages..."
+          
+          # Homepage
+          HOMEPAGE_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://korean-ai-compliance.vercel.app)
+          if [ "$HOMEPAGE_CODE" = "200" ]; then
+            echo "✅ Frontend homepage: OK"
+            echo "frontend_status=healthy" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Frontend homepage: FAILED (HTTP $HOMEPAGE_CODE)"
+            echo "frontend_status=unhealthy" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Enterprise page
+          ENTERPRISE_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://korean-ai-compliance.vercel.app/enterprise)
+          if [ "$ENTERPRISE_CODE" = "200" ]; then
+            echo "✅ Frontend enterprise page: OK"
+          else
+            echo "⚠️ Frontend enterprise page: HTTP $ENTERPRISE_CODE"
+          fi
+          
+          # Check for Korean content
+          CONTENT=$(curl -s https://korean-ai-compliance.vercel.app)
+          if echo "$CONTENT" | grep -q "한국\|Korean\|AI"; then
+            echo "✅ Korean content detected"
+          else
+            echo "⚠️ Korean content not found"
+          fi
+
+      - name: Check API Documentation
+        id: docs
+        continue-on-error: true
+        run: |
+          echo "Testing API documentation..."
+          DOCS_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://korean-ai-compliance.onrender.com/docs)
+          if [ "$DOCS_CODE" = "200" ]; then
+            echo "✅ API docs: OK"
+            echo "docs_status=healthy" >> $GITHUB_OUTPUT
+          else
+            echo "❌ API docs: FAILED (HTTP $DOCS_CODE)"
+            echo "docs_status=unhealthy" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Test Risk Assessment Endpoint
+        id: assessment
+        continue-on-error: true
+        run: |
+          echo "Testing risk assessment endpoint..."
+          
+          # Test POST to /v1/assessments with sample data
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            https://korean-ai-compliance.onrender.com/v1/assessments \
+            -H "Content-Type: application/json" \
+            -d '{
+              "company_name": "Health Check Test",
+              "industry": "Technology",
+              "ai_use_case": "Testing",
+              "data_processing": "minimal",
+              "contact_email": "test@example.com"
+            }')
+          
+          STATUS_CODE=$(echo "$RESPONSE" | tail -n1)
+          if [ "$STATUS_CODE" = "200" ] || [ "$STATUS_CODE" = "201" ]; then
+            echo "✅ Risk assessment endpoint: OK"
+            echo "assessment_status=healthy" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Risk assessment endpoint: HTTP $STATUS_CODE"
+            echo "assessment_status=degraded" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate Health Report
+        if: always()
+        run: |
+          echo "## 🏥 Health Check Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### System Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Backend
+          if [ "${{ steps.backend.outputs.backend_status }}" = "healthy" ]; then
+            echo "| Backend API | ✅ Healthy (Uptime: ${{ steps.backend.outputs.backend_uptime }}) |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Backend API | ❌ Unhealthy |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Frontend
+          if [ "${{ steps.frontend.outputs.frontend_status }}" = "healthy" ]; then
+            echo "| Frontend App | ✅ Healthy |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Frontend App | ❌ Unhealthy |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # API Docs
+          if [ "${{ steps.docs.outputs.docs_status }}" = "healthy" ]; then
+            echo "| API Documentation | ✅ Healthy |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| API Documentation | ❌ Unhealthy |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Assessment
+          if [ "${{ steps.assessment.outputs.assessment_status }}" = "healthy" ]; then
+            echo "| Risk Assessment API | ✅ Healthy |" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.assessment.outputs.assessment_status }}" = "degraded" ]; then
+            echo "| Risk Assessment API | ⚠️ Degraded |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Risk Assessment API | ❌ Unhealthy |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "- [Backend API](https://korean-ai-compliance.onrender.com)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Frontend App](https://korean-ai-compliance.vercel.app)" >> $GITHUB_STEP_SUMMARY
+          echo "- [API Docs](https://korean-ai-compliance.onrender.com/docs)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Enterprise Page](https://korean-ai-compliance.vercel.app/enterprise)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "⚠️ Health check failed! Check the logs above for details."
+          echo ""
+          echo "Failed checks:"
+          if [ "${{ steps.backend.outcome }}" = "failure" ]; then
+            echo "- ❌ Backend API"
+          fi
+          if [ "${{ steps.frontend.outcome }}" = "failure" ]; then
+            echo "- ❌ Frontend App"
+          fi
+          
+          # Here you could add Slack/Discord webhook notification
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"🚨 Korean AI Compliance health check failed!"}' \
+          #   $SLACK_WEBHOOK_URL
