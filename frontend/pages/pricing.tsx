@@ -290,7 +290,7 @@ export default function Pricing() {
                 </h2>
                 <p className="text-lg text-obangsaek-heuk/80 mb-8">
                   We guarantee our compliance tools meet all current Korean AI Act, PIPA, and MSIT requirements.
-                  If we miss a regulatory update, we'll upgrade your compliance package at no extra cost.
+                  If we miss a regulatory update, we&apos;ll upgrade your compliance package at no extra cost.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="glass rounded-xl p-6">
