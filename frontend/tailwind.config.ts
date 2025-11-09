@@ -19,7 +19,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Noto Sans KR', 'sans-serif'],
+        sans: ['Pretendard', 'Noto Sans KR', 'sans-serif'],
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
