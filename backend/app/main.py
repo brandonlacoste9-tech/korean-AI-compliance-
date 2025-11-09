@@ -77,6 +77,7 @@ startup_time = datetime.utcnow()
 # Health check endpoint with detailed metrics
 @app.get("/")
 @app.get("/health")
+@app.get("/healthz")
 async def health_check(request: Request) -> Dict[str, Any]:
     """
     Health check endpoint with system metrics.
@@ -103,6 +104,29 @@ async def health_check(request: Request) -> Dict[str, Any]:
     logger.debug("Health check requested", extra={"extra_fields": {"uptime": uptime_seconds}})
 
     return health_data
+
+@app.get("/readiness")
+async def readiness_check() -> Dict[str, str]:
+    """
+    Kubernetes-style readiness probe.
+    
+    Returns 200 OK if service is ready to accept traffic.
+    """
+    logger.debug("Readiness check requested")
+    return {"status": "ready"}
+
+@app.get("/version")
+async def version_info() -> Dict[str, Any]:
+    """
+    Version and build information endpoint.
+    """
+    return {
+        "version": "1.0.0",
+        "service": "AI Compliance Guardian API",
+        "python_version": sys.version.split()[0],
+        "environment": os.getenv("ENVIRONMENT", "development"),
+        "build_time": startup_time.isoformat() + "Z"
+    }
 
 # Risk assessment endpoint
 @app.post("/v1/assessments")

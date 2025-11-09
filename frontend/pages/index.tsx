@@ -2,29 +2,42 @@ import React from 'react';
 import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
-import Head from 'next/head';
 import Header from '@/components/Header';
 import CountdownTimer from '@/components/CountdownTimer';
 import RiskAssessment from '@/components/RiskAssessment';
 import PricingCards from '@/components/PricingCards';
+import { HomeSEO } from '@/components/SEO';
+import { Analytics, trackConversion } from '@/components/Analytics';
+import Testimonials from '@/components/Testimonials';
+import SocialProof from '@/components/SocialProof';
+import { usePerformance } from '@/hooks/usePerformance';
 
 export default function Home() {
   const { t } = useTranslation('common');
-  
+
+  // Performance optimization
+  usePerformance();
+
   // Target date: January 22, 2026
   const targetDate = new Date('2026-01-22T00:00:00+09:00');
 
+  // Track CTA clicks
+  const handleCTAClick = () => {
+    trackConversion('trial_started');
+    const element = document.getElementById('risk-assessment');
+    element?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <>
-      <Head>
-        <title>{t('site.title')}</title>
-        <meta name="description" content={t('site.description')} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <HomeSEO />
+      <Analytics />
 
       <div className="min-h-screen">
         <Header />
+
+        {/* Social Proof Banner */}
+        <SocialProof />
 
         <main>
           {/* Hero Section */}
@@ -43,10 +56,7 @@ export default function Home() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
-                  onClick={() => {
-                    const element = document.getElementById('risk-assessment');
-                    element?.scrollIntoView({ behavior: 'smooth' });
-                  }}
+                  onClick={handleCTAClick}
                   className="btn-primary text-lg"
                 >
                   {t('hero.cta')}
@@ -109,6 +119,9 @@ export default function Home() {
             </div>
             <PricingCards />
           </section>
+
+          {/* Testimonials Section */}
+          <Testimonials />
 
           {/* Footer */}
           <footer className="glass-dark border-t border-obangsaek-cheong/20 py-8 mt-20">
