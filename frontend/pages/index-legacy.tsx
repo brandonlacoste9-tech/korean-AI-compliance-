@@ -51,7 +51,7 @@ export default function Home() {
               </p>
               
               <div className="mb-12">
-                <CountdownTimer targetDate={targetDate} />
+                <CountdownTimer />
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

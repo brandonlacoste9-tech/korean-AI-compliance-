@@ -76,7 +76,9 @@ export const Analytics = () => {
 };
 
 // Conversion tracking helpers
-export const trackConversion = (conversionType: 'trial_started' | 'payment_completed' | 'assessment_submitted') => {
+export const trackConversion = (
+  conversionType: 'trial_started' | 'payment_completed' | 'assessment_submitted' | 'enterprise_demo_request'
+) => {
   event({
     action: conversionType,
     category: 'conversion',
