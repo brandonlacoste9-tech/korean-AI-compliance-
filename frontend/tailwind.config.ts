@@ -6,6 +6,7 @@ const config: Config = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -16,7 +17,14 @@ const config: Config = {
           jeok: '#C8102E',    // 적 - Red (south)
           heuk: '#000000',    // 흑 - Black (north)
           hwang: '#FFD700',   // 황 - Yellow (west)
+          nokdusaek: '#8FBC8F', // 녹두색 - Green
         },
+        // Enterprise Dark Theme
+        bgPrimary: '#0A0F1C',
+        bgCard: '#1E2A38',
+        accentYellow: '#FFDD3C',
+        textLight: '#F2F2F2',
+        textMuted: '#6C7A89',
       },
       fontFamily: {
         sans: ['Pretendard', 'Noto Sans KR', 'sans-serif'],
