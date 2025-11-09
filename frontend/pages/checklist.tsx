@@ -87,7 +87,7 @@ const checklistData: ChecklistItem[] = [
     tools: [
       {
         name: 'AI Compliance Guardian Risk Assessment',
-        link: '/assessment',
+        link: '/',
       },
     ],
   },
@@ -540,7 +540,7 @@ export default function ChecklistPage() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link
-                    href="/assessment"
+                    href="/"
                     className="inline-block px-8 py-4 bg-white text-obangsaek-cheong rounded-lg font-bold text-lg hover:shadow-xl transition-all"
                   >
                     {language === 'ko' ? '무료 평가 시작 →' : 'Start Free Assessment →'}
