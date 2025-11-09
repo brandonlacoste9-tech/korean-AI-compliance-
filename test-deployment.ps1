@@ -46,7 +46,7 @@ function Test-Deployment {
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
     
     try {
-        $response = Invoke-WebRequest -Uri "https://frontend-azexz908h-brandons-projects-7c6e25ca.vercel.app/" -UseBasicParsing -TimeoutSec 10
+        $response = Invoke-WebRequest -Uri "https://korean-ai-compliance.vercel.app" -UseBasicParsing -TimeoutSec 10
         Write-Host "  ✅ Homepage             - HTTP $($response.StatusCode)" -ForegroundColor Green
         
         # Check for Korean content
