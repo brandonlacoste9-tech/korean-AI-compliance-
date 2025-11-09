@@ -42,15 +42,14 @@ const PricingCard: React.FC<PricingCardProps> = ({
         return;
       }
       
-      const response = await fetch(`${apiUrl}/api/stripe/create-checkout-session`, {
+      const response = await fetch(`${apiUrl}/api/stripe/create-checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID || 'price_professional_plan_krw',
-          successUrl: `${window.location.origin}/success`,
-          cancelUrl: `${window.location.origin}/cancel`,
+          plan: 'professional',
+          currency: 'krw'
         }),
       });
 
