@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="{% if language == 'ko' %}ko{% else %}en{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korean AI Compliance Checklist</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #003D82 0%, #005BAC 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .header p {
+            margin-top: 10px;
+            opacity: 0.95;
+            font-size: 16px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid #003D82;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        .highlight-box h3 {
+            margin: 0 0 15px 0;
+            color: #003D82;
+            font-size: 20px;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #555;
+        }
+        .checklist li:before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+            font-size: 18px;
+        }
+        .cta-container {
+            text-align: center;
+            margin: 35px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #003D82 0%, #005BAC 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .cta-button.secondary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .stat-item {
+            flex: 1;
+            padding: 15px;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #003D82;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .urgency {
+            background: linear-gradient(135deg, #fff3cd 0%, #fff8dc 100%);
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 6px;
+        }
+        .urgency strong {
+            color: #d39e00;
+            font-size: 18px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+            color: #666;
+            font-size: 13px;
+        }
+        .footer a {
+            color: #003D82;
+            text-decoration: none;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e9ecef, transparent);
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                {% if language == 'ko' %}
+                    📋 체크리스트를 보내드립니다!
+                {% else %}
+                    📋 Your Checklist is Here!
+                {% endif %}
+            </h1>
+            <p>AI Compliance Guardian</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <p class="greeting">
+                {% if language == 'ko' %}
+                    안녕하세요 <strong>{{ first_name }}</strong>님,
+                {% else %}
+                    Hi <strong>{{ first_name }}</strong>,
+                {% endif %}
+            </p>
+
+            <p>
+                {% if language == 'ko' %}
+                    한국 AI 기본법 준수 체크리스트를 다운로드해 주셔서 감사합니다! 
+                    2026년 1월 22일 시행을 앞두고 완벽하게 준비하실 수 있도록 도와드리겠습니다.
+                {% else %}
+                    Thank you for downloading the Korean AI Act Compliance Checklist! 
+                    We're here to help you prepare perfectly for the January 22, 2026 enforcement.
+                {% endif %}
+            </p>
+
+            <!-- Urgency Box -->
+            <div class="urgency">
+                <strong>
+                    {% if language == 'ko' %}
+                        ⏰ 시행까지 {{ days_until_enforcement }}일 남음
+                    {% else %}
+                        ⏰ {{ days_until_enforcement }} Days Until Enforcement
+                    {% endif %}
+                </strong>
+                <p style="margin: 10px 0 0 0; color: #856404;">
+                    {% if language == 'ko' %}
+                        지금 시작하면 충분히 준비할 수 있습니다. 함께 시작하세요!
+                    {% else %}
+                        Start now and you'll have plenty of time. Let's begin together!
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- 8 Steps Checklist -->
+            <div class="highlight-box">
+                <h3>
+                    {% if language == 'ko' %}
+                        🎯 준비해야 할 8단계
+                    {% else %}
+                        🎯 Your 8-Step Framework
+                    {% endif %}
+                </h3>
+                <ul class="checklist">
+                    {% if language == 'ko' %}
+                        <li><strong>Step 1:</strong> 적용 대상 확인</li>
+                        <li><strong>Step 2:</strong> 위험도 분류</li>
+                        <li><strong>Step 3:</strong> 투명성 보장</li>
+                        <li><strong>Step 4:</strong> 국내 대리인 지정</li>
+                        <li><strong>Step 5:</strong> PIPC 감사 로깅</li>
+                        <li><strong>Step 6:</strong> 보안 & 안전 조치</li>
+                        <li><strong>Step 7:</strong> 소통 및 증명</li>
+                        <li><strong>Step 8:</strong> 벌칙 인식</li>
+                    {% else %}
+                        <li><strong>Step 1:</strong> Determine Applicability</li>
+                        <li><strong>Step 2:</strong> Risk Classification</li>
+                        <li><strong>Step 3:</strong> Ensure Transparency</li>
+                        <li><strong>Step 4:</strong> Appoint Local Representative</li>
+                        <li><strong>Step 5:</strong> PIPC Audit Logging</li>
+                        <li><strong>Step 6:</strong> Security & Safety</li>
+                        <li><strong>Step 7:</strong> Communicate Compliance</li>
+                        <li><strong>Step 8:</strong> Understand Penalties</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">{{ days_until_enforcement }}</div>
+                    <div class="stat-label">
+                        {% if language == 'ko' %}일 남음{% else %}Days Left{% endif %}
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">₩30M</div>
+                    <div class="stat-label">
+                        {% if language == 'ko' %}벌금/위반{% else %}Fine/Violation{% endif %}
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">
+                        {% if language == 'ko' %}단계{% else %}Steps{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Next Steps -->
+            <h3 style="color: #003D82; text-align: center;">
+                {% if language == 'ko' %}
+                    🚀 다음 단계
+                {% else %}
+                    🚀 Your Next Steps
+                {% endif %}
+            </h3>
+
+            <p style="text-align: center; color: #666;">
+                {% if language == 'ko' %}
+                    지금 바로 시작하세요:
+                {% else %}
+                    Get started right now:
+                {% endif %}
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="cta-container">
+                <a href="https://korean-ai-compliance.vercel.app/assessment?utm_source=email&utm_campaign=checklist-pdf" class="cta-button">
+                    {% if language == 'ko' %}
+                        무료 위험도 평가 받기 →
+                    {% else %}
+                        Start Free Risk Assessment →
+                    {% endif %}
+                </a>
+                <a href="https://korean-ai-compliance.vercel.app/pricing?utm_source=email&utm_campaign=checklist-pdf" class="cta-button secondary">
+                    {% if language == 'ko' %}
+                        요금제 보기
+                    {% else %}
+                        View Pricing
+                    {% endif %}
+                </a>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Help Section -->
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                {% if language == 'ko' %}
+                    질문이 있으시면 언제든지 이 이메일에 답장해 주세요. 
+                    저희 팀이 24시간 이내에 답변드리겠습니다.
+                {% else %}
+                    Have questions? Just reply to this email. 
+                    Our team will respond within 24 hours.
+                {% endif %}
+            </p>
+
+            <p style="font-size: 16px; color: #333; margin-top: 25px;">
+                {% if language == 'ko' %}
+                    감사합니다,<br>
+                    <strong>AI Compliance Guardian Team</strong>
+                {% else %}
+                    Thank you,<br>
+                    <strong>AI Compliance Guardian Team</strong>
+                {% endif %}
+            </p>
+
+            <p style="font-size: 13px; color: #999; margin-top: 20px; font-style: italic;">
+                {% if language == 'ko' %}
+                    P.S. 동료와 공유하세요! 준비된 회사가 많을수록 한국 AI 생태계가 더욱 안전해집니다. 🇰🇷
+                {% else %}
+                    P.S. Share with your colleagues! The more prepared companies, the safer Korea's AI ecosystem. 🇰🇷
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0; font-size: 14px; font-weight: bold; color: #333;">
+                AI Compliance Guardian
+            </p>
+            <p style="margin: 10px 0;">
+                {% if language == 'ko' %}
+                    한국 AI 기본법 준수를 쉽게<br>
+                    Seoul, South Korea
+                {% else %}
+                    Making Korean AI Compliance Easy<br>
+                    Seoul, South Korea
+                {% endif %}
+            </p>
+            <p style="margin: 15px 0 5px 0;">
+                <a href="https://korean-ai-compliance.vercel.app">Website</a> • 
+                <a href="https://korean-ai-compliance.vercel.app/pricing">Pricing</a> • 
+                <a href="https://korean-ai-compliance.vercel.app/faq">FAQ</a> • 
+                <a href="mailto:support@aicomplianceguardian.kr">Support</a>
+            </p>
+            <p style="margin: 15px 0 0 0; font-size: 11px; color: #999;">
+                © {{ year }} AI Compliance Guardian. All rights reserved.<br>
+                {% if language == 'ko' %}
+                    이메일 수신을 원치 않으시면
+                {% else %}
+                    Don't want to receive these emails?
+                {% endif %}
+                <a href="#">Unsubscribe</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
