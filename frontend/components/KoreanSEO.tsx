@@ -169,8 +169,6 @@ export default function KoreanSEO({
       />
 
       {/* Preconnect to important domains */}
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link rel="preconnect" href="https://korean-ai-compliance.onrender.com" />
 
       {/* DNS Prefetch for faster loading */}
