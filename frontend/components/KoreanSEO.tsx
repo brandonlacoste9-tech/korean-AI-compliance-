@@ -175,14 +175,6 @@ export default function KoreanSEO({
 
       {/* DNS Prefetch for faster loading */}
       <link rel="dns-prefetch" href="https://checkout.stripe.com" />
-      <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-
-      {/* Korean Fonts Preload */}
-      <link
-        rel="preload"
-        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
-        as="style"
-      />
     </Head>
   );
 }

@@ -28,9 +28,6 @@ export default function Home2026() {
       <Head>
         <title>AI 준법 가디언 🇰🇷 | 한국 인공지능법 완벽 대응</title>
         <meta name="description" content="2026년 1월 22일 시행 AI법 대비. MSIT·PIPC 인증. 서울 데이터 보관." />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap" rel="stylesheet" />
       </Head>
 
       <HomeSEO />
