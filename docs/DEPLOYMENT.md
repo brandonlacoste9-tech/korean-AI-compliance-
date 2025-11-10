@@ -1,13 +1,13 @@
-# Deployment Guide (Vercel, Railway, Supabase Seoul, Stripe KRW)
+# Deployment Guide (Vercel, Render, Supabase Seoul, Stripe KRW)
 
-## Backend (FastAPI, Railway)
-1. Set up Railway project (Python 3.11, FastAPI, Supabase dependency)
+## Backend (FastAPI, Render)
+1. Set up Render project (Python 3.11, FastAPI, Supabase dependency)
 2. .env:
    - SUPABASE_URL (Seoul region)
    - SUPABASE_KEY
    - STRIPE_SECRET_KEY (KRW)
    - EMAIL_API_KEY (Resend)
-3. Deploy to Railway, enable auto-deploy on main push
+3. Deploy to Render, enable auto-deploy on main push
 4. PIPC audit: logs to local file (Seoul residency, immutable)
 
 ## Frontend (Next.js, Vercel)
@@ -25,7 +25,7 @@
 - `.github/workflows/deploy.yml`
     - Test backend (`pytest`)
     - Test frontend (`npm test`)
-    - Deploy Vercel and Railway on `main`
+    - Deploy Vercel and Render on `main`
     - Secret scanning enabled (Enterprise)
     - Branch protection (require review)
 

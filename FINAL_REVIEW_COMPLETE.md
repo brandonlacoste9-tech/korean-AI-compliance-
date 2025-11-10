@@ -249,7 +249,7 @@ NEXT_PUBLIC_STRIPE_PRICE_ID=price_...
 
 ## 💡 Next Steps
 
-1. **Deploy Backend**: Deploy to Railway/Render with production environment variables
+1. **Deploy Backend**: Deploy to Render with production environment variables
 2. **Deploy Frontend**: Deploy to Vercel with production API URL
 3. **Configure Stripe**: Set up live Stripe keys and products
 4. **DNS Setup**: Configure custom domain
@@ -264,7 +264,7 @@ If you encounter any issues during deployment:
 1. Check environment variables are correctly set
 2. Verify API endpoints are accessible
 3. Review CI/CD workflow logs on GitHub
-4. Check Vercel/Railway deployment logs
+4. Check Vercel/Render deployment logs
 
 ---
 

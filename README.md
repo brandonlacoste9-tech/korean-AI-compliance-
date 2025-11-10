@@ -14,7 +14,7 @@ Bilingual support (Korean/English) | Obangsaek design system | Compliance-focuse
 ### Quickstart
 1. Backend: FastAPI, PIPC audit log, Supabase, Stripe webhook
 2. Frontend: Next.js/React, next-i18next, Obangsaek palette, 배너/뱃지
-3. CI/CD: GitHub Actions, Vercel/Railway, secret scanning
+3. CI/CD: GitHub Actions, Vercel/Render, secret scanning
 
 Project status: MVP deployment underway
 
@@ -35,7 +35,7 @@ Bilingual (KR/EN), Obangsaek color system, compliance-first. SaaS revenue model 
 ### Quickstart
 1. Backend: FastAPI, PIPC audit logging, Supabase, Stripe webhook
 2. Frontend: Next.js/React, next-i18next bilingual support, Obangsaek palette
-3. CI/CD: GitHub Actions, Vercel/Railway, secret scanning
+3. CI/CD: GitHub Actions, Vercel/Render, secret scanning
 
 ---
 Revenue: SaaS subscription (Stripe KRW)

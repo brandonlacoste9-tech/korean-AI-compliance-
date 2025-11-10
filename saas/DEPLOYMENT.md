@@ -1,6 +1,6 @@
 # Deployment Guide - Korean AI Compliance SaaS
 
-This guide covers deploying your FastAPI backend to Railway, Render, or other Nixpacks-based platforms.
+This guide covers deploying your FastAPI backend to Render or other Nixpacks-based platforms.
 
 ## Architecture
 
@@ -10,56 +10,7 @@ This deployment uses a **monorepo structure**:
 
 ## Backend Deployment (FastAPI)
 
-### Option 1: Railway (Recommended)
-
-#### Prerequisites
-- Railway account: https://railway.app
-- GitHub repository connected
-
-#### Steps
-
-1. **Push to GitHub**:
-   ```bash
-   cd ~/korean-AI-compliance-/saas
-   git add .
-   git commit -m "Add deployment configuration"
-   git push origin saas-bootstrap
-   ```
-
-2. **Create Railway Project**:
-   - Go to https://railway.app/new
-   - Click "Deploy from GitHub repo"
-   - Select your `korean-AI-compliance-` repository
-   - Railway will auto-detect `nixpacks.toml`
-
-3. **Set Environment Variables** in Railway dashboard:
-   ```env
-   DATABASE_URL=postgresql://user:pass@host:5432/dbname
-   RESEND_API_KEY=re_your_resend_api_key
-   STRIPE_SECRET_KEY=sk_live_your_stripe_secret_key
-   PORT=8000
-   ```
-
-4. **Deploy**:
-   - Railway will automatically deploy using nixpacks.toml
-   - Build command: `cd backend && pip install .`
-   - Start command: `cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-
-5. **Get Your API URL**:
-   - Railway will provide: `https://your-app.railway.app`
-   - Update frontend API URLs to point to this
-
-#### Railway Advantages
-- ✅ Free tier: $5/month credit
-- ✅ Auto-deploy on git push
-- ✅ Built-in PostgreSQL
-- ✅ Free SSL certificates
-- ✅ Environment variable management
-- ✅ Logs and metrics
-
----
-
-### Option 2: Render
+### Render Deployment (Recommended)
 
 #### Steps
 
@@ -167,47 +118,47 @@ This deployment uses a **monorepo structure**:
    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
    STRIPE_SECRET_KEY=sk_live_...
    RESEND_API_KEY=re_...
-   NEXT_PUBLIC_API_URL=https://your-backend.railway.app
+   NEXT_PUBLIC_API_URL=https://your-backend.onrender.com
    ```
 
 4. **Deploy**:
    - Vercel will auto-deploy on every git push to main
    - Custom domain supported
 
-### Option 2: Railway (Full-Stack)
+### Option 2: Vercel with Render Backend
 
-Deploy both frontend and backend:
+Deploy frontend on Vercel and backend on Render:
 
-1. **Frontend Service**:
+1. **Frontend Service** (Vercel):
    ```
    Build Command: npm run build
    Start Command: npm start
    Root Directory: saas
    ```
 
-2. **Backend Service**:
+2. **Backend Service** (Render):
    Uses existing nixpacks.toml configuration
 
 3. **Link Services**:
-   - Set `NEXT_PUBLIC_API_URL` to backend Railway URL
+   - Set `NEXT_PUBLIC_API_URL` to backend Render URL
 
 ---
 
 ## Database Setup
 
-### PostgreSQL on Railway
+### PostgreSQL on Render
 
 1. **Create PostgreSQL Database**:
-   - In Railway project: "New" → "Database" → "PostgreSQL"
-   - Railway auto-generates `DATABASE_URL`
+   - In Render dashboard: "New" → "PostgreSQL"
+   - Render auto-generates `DATABASE_URL`
 
 2. **Connect to Backend**:
-   - Railway automatically injects `DATABASE_URL` env var
+   - Render automatically injects `DATABASE_URL` env var
    - No additional configuration needed
 
 3. **Run Migrations**:
    ```bash
-   # SSH into Railway container or run locally
+   # Run migrations after deployment
    python -c "from app.main import engine; from sqlmodel import SQLModel; SQLModel.metadata.create_all(engine)"
    ```
 
@@ -246,14 +197,14 @@ Deploy both frontend and backend:
 
 - [ ] Set up error tracking (Sentry)
 - [ ] Configure uptime monitoring (UptimeRobot)
-- [ ] Enable Railway/Render logs
+- [ ] Enable Render logs
 - [ ] Set up email delivery monitoring (Resend dashboard)
 
 ---
 
 ## Production Environment Variables
 
-### Backend (.env or Railway/Render dashboard)
+### Backend (.env or Render dashboard)
 
 ```env
 # Database
@@ -271,7 +222,7 @@ PORT=8000
 PYTHON_ENV=production
 ```
 
-### Frontend (Vercel/Railway dashboard)
+### Frontend (Vercel dashboard)
 
 ```env
 # Stripe
@@ -279,7 +230,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_your_live_publishable_key
 STRIPE_SECRET_KEY=sk_live_your_live_secret_key
 
 # API
-NEXT_PUBLIC_API_URL=https://your-backend.railway.app
+NEXT_PUBLIC_API_URL=https://your-backend.onrender.com
 
 # Email
 RESEND_API_KEY=re_your_live_api_key
@@ -315,19 +266,19 @@ After deployment, configure Stripe webhooks:
 
 ## Domain Configuration
 
-### Custom Domain (Railway)
+### Custom Domain (Render)
 
 1. **Add Custom Domain**:
-   - Railway dashboard → Settings → Domains
+   - Render dashboard → Settings → Custom Domains
    - Add: `api.aicomplianceguardian.com`
 
 2. **Update DNS**:
    ```
-   CNAME api.aicomplianceguardian.com → your-app.railway.app
+   CNAME api.aicomplianceguardian.com → your-app.onrender.com
    ```
 
 3. **SSL Certificate**:
-   - Railway auto-generates Let's Encrypt SSL
+   - Render auto-generates Let's Encrypt SSL
    - No additional configuration needed
 
 ### Custom Domain (Vercel)
@@ -346,10 +297,10 @@ After deployment, configure Stripe webhooks:
 
 ## Scaling & Performance
 
-### Railway Scaling
+### Render Scaling
 
-- **Vertical Scaling**: Upgrade to Pro plan ($20/mo)
-- **Horizontal Scaling**: Add more instances (coming soon)
+- **Vertical Scaling**: Upgrade instance type as needed
+- **Horizontal Scaling**: Add more instances with load balancing
 - **Database**: Upgrade PostgreSQL plan as needed
 
 ### Caching
@@ -363,16 +314,16 @@ import redis
 redis_client = redis.from_url(os.getenv("REDIS_URL"))
 ```
 
-Railway provides Redis addon.
+Render provides Redis addon.
 
 ---
 
 ## Rollback Strategy
 
-### Railway
+### Render
 
 1. **View Deployments**:
-   - Dashboard → Deployments tab
+   - Dashboard → Deploys tab
 
 2. **Rollback**:
    - Click previous successful deployment
@@ -390,23 +341,11 @@ git push origin main
 
 ## Monitoring & Logs
 
-### Railway Logs
-
-```bash
-# Install Railway CLI
-npm i -g @railway/cli
-
-# Login
-railway login
-
-# View logs
-railway logs
-```
-
 ### Render Logs
 
 - Dashboard → Logs tab
 - Real-time log streaming
+- Download logs for analysis
 
 ### Error Tracking (Sentry)
 
@@ -430,7 +369,7 @@ sentry_sdk.init(
 
 - [ ] All secrets in environment variables (not in code)
 - [ ] `.env.local` in `.gitignore`
-- [ ] HTTPS enabled (Railway/Vercel handle automatically)
+- [ ] HTTPS enabled (Render/Vercel handle automatically)
 - [ ] CORS configured for production domain only
 - [ ] Rate limiting enabled (add middleware)
 - [ ] SQL injection prevention (SQLModel handles this)
@@ -444,32 +383,32 @@ sentry_sdk.init(
 
 ### Free Tier (Development)
 
-- **Railway**: $5/month credit (enough for 1-2 services)
+- **Render**: Free tier (with limitations)
 - **Vercel**: Unlimited frontend deployments
 - **Supabase**: 500MB database, 2GB bandwidth
 - **Resend**: 100 emails/day
 - **Stripe**: Free (pay per transaction)
 
-**Total**: ~$0-5/month for development
+**Total**: ~$0/month for development
 
 ### Production (Low Traffic)
 
-- **Railway Pro**: $20/month (backend + PostgreSQL)
+- **Render Starter**: $7/month per service
 - **Vercel Pro**: $20/month (custom domain + analytics)
 - **Resend**: $20/month (50,000 emails)
 - **Stripe**: 3.4% + ₩40 per transaction
 
-**Total**: ~$60/month + transaction fees
+**Total**: ~$47/month + transaction fees
 
 ### Production (Medium Traffic)
 
-- **Railway**: $50-100/month
+- **Render**: $25-85/month (depending on instance type)
 - **Vercel**: $20/month
 - **Supabase Pro**: $25/month
 - **Resend**: $20-80/month
 - **CDN**: $10-20/month (Cloudflare)
 
-**Total**: ~$125-245/month
+**Total**: ~$100-230/month
 
 ---
 
@@ -488,7 +427,7 @@ sentry_sdk.init(
 
 **Error**: Database connection failed
 - **Fix**: Verify `DATABASE_URL` environment variable
-- **Fix**: Check database is running (Railway auto-starts)
+- **Fix**: Check database is running and accessible
 
 **Error**: Port binding failed
 - **Fix**: Use `$PORT` environment variable
@@ -506,7 +445,7 @@ sentry_sdk.init(
 
 ## Next Steps
 
-1. **Deploy Backend** to Railway
+1. **Deploy Backend** to Render
 2. **Deploy Frontend** to Vercel
 3. **Configure Custom Domain**
 4. **Set Up Stripe Webhooks**
@@ -518,7 +457,6 @@ sentry_sdk.init(
 
 **Questions?**
 
-- Railway Docs: https://docs.railway.app
 - Render Docs: https://render.com/docs
 - Vercel Docs: https://vercel.com/docs
 

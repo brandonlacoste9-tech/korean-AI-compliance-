@@ -8,8 +8,8 @@
 
 ## Prerequisites (사전 준비사항)
 
-- ✅ Backend deployed to Railway (see `RAILWAY_DEPLOY.md`)
-- ✅ Backend URL from Railway (e.g., `https://your-backend.railway.app`)
+- ✅ Backend deployed to Render (see `DEPLOYMENT.md`)
+- ✅ Backend URL from Render (e.g., `https://your-backend.onrender.com`)
 - ✅ Vercel account (create at https://vercel.com)
 - ✅ Stripe API keys
 - ⏱️ Time until AI Basic Act enforcement: **77 days** (January 22, 2026)
@@ -83,11 +83,11 @@ Click **"Add"** for each variable below:
 
 ```env
 Name: NEXT_PUBLIC_API_URL
-Value: https://your-backend-name.railway.app
+Value: https://your-backend-name.onrender.com
 Environment: Production, Preview, Development (check all 3)
 ```
 
-**Replace** `your-backend-name.railway.app` with your actual Railway URL.
+**Replace** `your-backend-name.onrender.com` with your actual Render URL.
 
 #### Stripe Configuration
 
@@ -349,9 +349,9 @@ Vercel automatically provisions SSL:
 
 ### 7.1 Update CORS in Backend
 
-Your Railway backend needs to allow your Vercel domain:
+Your Render backend needs to allow your Vercel domain:
 
-1. **Go to Railway dashboard** → **Backend service** → **Variables**
+1. **Go to Render dashboard** → **Backend service** → **Environment**
 2. **Update `ALLOWED_ORIGINS`**:
    ```env
    ALLOWED_ORIGINS=https://your-project.vercel.app,https://aicomplianceguardian.com
@@ -365,12 +365,12 @@ Your Railway backend needs to allow your Vercel domain:
 3. **Visit your Vercel site**
 4. **Trigger risk assessment**
 5. **Check Network tab for API calls**:
-   - ✅ `POST https://your-backend.railway.app/v1/systems/1/score`
+   - ✅ `POST https://your-backend.onrender.com/v1/systems/1/score`
    - ✅ Status: 200 OK
    - ✅ Response contains risk assessment data
 
 If you see CORS errors:
-- Verify `ALLOWED_ORIGINS` in Railway
+- Verify `ALLOWED_ORIGINS` in Render
 - Check API URL in Vercel environment variables
 - Redeploy both services
 
@@ -577,7 +577,7 @@ git push
 **Problem**: Backend rejecting requests
 
 **Solution**:
-1. Add Vercel URL to `ALLOWED_ORIGINS` in Railway
+1. Add Vercel URL to `ALLOWED_ORIGINS` in Render
 2. Format: `https://your-project.vercel.app` (no trailing slash)
 3. Include both production and preview URLs
 4. Redeploy backend
@@ -710,9 +710,9 @@ After frontend is deployed:
   - Priority support
 
 **Total Cost (Full Stack)**:
-- Backend (Railway): $10-35/month
+- Backend (Render): $7-85/month
 - Frontend (Vercel): $0-20/month
-- **Total**: $10-55/month
+- **Total**: $7-105/month
 
 ---
 
@@ -731,7 +731,7 @@ After frontend is deployed:
 Your Korean AI Compliance SaaS frontend is now live on Vercel!
 
 **Frontend URL**: `https://your-project.vercel.app`
-**Backend URL**: `https://your-backend.railway.app`
+**Backend URL**: `https://your-backend.onrender.com`
 
 **Total Time**: 15-20 minutes ⏱️
 
