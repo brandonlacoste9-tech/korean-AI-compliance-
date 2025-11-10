@@ -6,7 +6,13 @@ param(
     [int]$Interval = 30
 )
 
-$RENDER_API_KEY = "rnd_a2iVTaDlXex7zzto0IslpW7Yg2d4"
+$RENDER_API_KEY = $env:RENDER_API_KEY
+
+if (-not $RENDER_API_KEY) {
+    Write-Host "❌ Error: RENDER_API_KEY environment variable not set" -ForegroundColor Red
+    Write-Host "Please set the RENDER_API_KEY environment variable before running this script." -ForegroundColor Yellow
+    exit 1
+}
 
 function Get-RenderServices {
     try {
