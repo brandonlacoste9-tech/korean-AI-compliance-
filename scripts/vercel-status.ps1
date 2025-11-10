@@ -1,5 +1,12 @@
 # Vercel Deployment Status
-$VERCEL_TOKEN = "esrnBXwmbz5Y0M6Ee5jkecRp"
+$VERCEL_TOKEN = $env:VERCEL_TOKEN
+
+if (-not $VERCEL_TOKEN) {
+    Write-Host "❌ Error: VERCEL_TOKEN environment variable not set" -ForegroundColor Red
+    Write-Host "Please set the VERCEL_TOKEN environment variable before running this script." -ForegroundColor Yellow
+    Write-Host "Example: `$env:VERCEL_TOKEN = 'your-token-here'" -ForegroundColor Gray
+    exit 1
+}
 
 Write-Host "Vercel Deployments Status" -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
