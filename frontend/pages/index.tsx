@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Image from 'next/image';
 import { HomeSEO } from '@/components/SEO';
@@ -10,10 +11,16 @@ import { usePerformance } from '@/hooks/usePerformance';
 import RiskAssessment from '@/components/RiskAssessment';
 
 export default function Home2026() {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
+  const router = useRouter();
   usePerformance();
 
   const [isDark, setIsDark] = useState(false);
+
+  const toggleLanguage = () => {
+    const newLocale = i18n.language === 'ko' ? 'en' : 'ko';
+    router.push(router.pathname, router.asPath, { locale: newLocale });
+  };
 
   // Target date: January 22, 2026
   const targetDate = new Date('2026-01-22T00:00:00+09:00');
@@ -35,14 +42,23 @@ export default function Home2026() {
       <Analytics />
 
       <div className={`min-h-screen ${isDark ? 'dark' : ''}`}>
-        {/* Dark Mode Toggle */}
-        <button
-          onClick={() => setIsDark(!isDark)}
-          className="fixed top-4 right-4 z-50 p-3 bg-gray-800 dark:bg-white text-white dark:text-gray-800 rounded-full shadow-lg hover:scale-110 transition-transform"
-          aria-label="다크 모드 전환"
-        >
-          {isDark ? '☀️' : '🌙'}
-        </button>
+        {/* Language & Dark Mode Toggles */}
+        <div className="fixed top-4 right-4 z-50 flex gap-2">
+          <button
+            onClick={toggleLanguage}
+            className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:scale-110 transition-transform font-bold"
+            aria-label="Toggle language"
+          >
+            {i18n.language === 'ko' ? 'EN' : '한국어'}
+          </button>
+          <button
+            onClick={() => setIsDark(!isDark)}
+            className="p-3 bg-gray-800 dark:bg-white text-white dark:text-gray-800 rounded-full shadow-lg hover:scale-110 transition-transform"
+            aria-label="다크 모드 전환"
+          >
+            {isDark ? '☀️' : '🌙'}
+          </button>
+        </div>
 
         {/* Hero Section with Modern Design */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
