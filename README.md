@@ -4,6 +4,31 @@
 
 Bilingual support (Korean/English) | Obangsaek design system | Compliance-focused | Revenue model: SaaS subscription (Stripe KRW) | Supabase Seoul residency
 
+## Quick Installation (Windows)
+
+Install with a single PowerShell command:
+
+```powershell
+irm https://claude.ai/install.ps1 | iex
+```
+
+Or with options:
+
+```powershell
+# Custom installation path
+irm https://claude.ai/install.ps1 | iex -Args @{InstallPath="C:\Projects\korean-ai"}
+
+# Skip prerequisite checks
+irm https://claude.ai/install.ps1 | iex -Args @{SkipPrerequisites=$true}
+```
+
+The installer will:
+- ✅ Check and install prerequisites (Git, Node.js, Python)
+- ✅ Clone the repository
+- ✅ Set up backend (FastAPI + virtual environment)
+- ✅ Set up frontend (Next.js + dependencies)
+- ✅ Create environment configuration files
+
 ## 주요 특징
 - PIPC 감사 로깅 (Seoul residency)
 - MSIT, PIPC 준수 인증 및 뱃지
@@ -24,6 +49,16 @@ ENGLISH SUMMARY
 
 Korea AI Basic Law & PIPC Compliance SaaS, 77-day countdown
 Bilingual (KR/EN), Obangsaek color system, compliance-first. SaaS revenue model (Stripe/KRW), Supabase Korea residency.
+
+### Quick Installation
+
+One-line PowerShell installer for Windows:
+
+```powershell
+irm https://claude.ai/install.ps1 | iex
+```
+
+The script automatically installs prerequisites (Git, Node.js, Python), clones the repo, and sets up both backend and frontend environments.
 
 #### Features
 - PIPC audit logging (Seoul residency)
