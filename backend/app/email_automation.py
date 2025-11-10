@@ -7,14 +7,17 @@ import os
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import resend
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 import logging
 
 # Configure Resend
 resend.api_key = os.getenv("RESEND_API_KEY", "")
 
 # Configure Jinja2 for email templates
-template_env = Environment(loader=FileSystemLoader("app/email_templates"))
+template_env = Environment(
+    loader=FileSystemLoader("app/email_templates"),
+    autoescape=select_autoescape(['html', 'xml'])
+)
 
 logger = logging.getLogger(__name__)
 
