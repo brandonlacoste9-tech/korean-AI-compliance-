@@ -1,0 +1,67 @@
+name: Close Stale Issues and PRs
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Daily at midnight UTC
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Issue configuration
+          stale-issue-message: |
+            👋 This issue has been automatically marked as stale because it has not had
+            recent activity for **30 days**.
+
+            It will be automatically closed in **7 days** if no further activity occurs.
+
+            If this issue is still relevant, please:
+            - Comment on this issue
+            - Add more information
+            - Remove the 'stale' label
+
+            Thank you for your contributions!
+          close-issue-message: |
+            🔒 This issue was automatically closed due to inactivity.
+
+            If this is still relevant, feel free to reopen it or create a new issue
+            with updated information.
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-label: 'stale'
+          exempt-issue-labels: 'pinned,security,priority:high,priority:critical,in-progress'
+
+          # PR configuration
+          stale-pr-message: |
+            👋 This PR has been automatically marked as stale because it has not had
+            recent activity for **30 days**.
+
+            It will be automatically closed in **7 days** if no further activity occurs.
+
+            If this PR is still relevant, please:
+            - Rebase on the latest main branch
+            - Resolve any conflicts
+            - Request a review
+            - Remove the 'stale' label
+          close-pr-message: |
+            🔒 This PR was automatically closed due to inactivity.
+
+            If you'd like to continue this work, please:
+            - Reopen this PR
+            - Or create a new PR with updated changes
+          stale-pr-label: 'stale'
+          exempt-pr-labels: 'pinned,security,priority:high,priority:critical,in-progress'
+
+          # Operations
+          operations-per-run: 100
+          remove-stale-when-updated: true

@@ -1,0 +1,103 @@
+name: Auto Label Issues and PRs
+
+on:
+  issues:
+    types: [opened, edited]
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Label based on title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue || context.payload.pull_request;
+            const title = issue.title.toLowerCase();
+            const labels = [];
+
+            // Auto-label based on keywords
+            if (title.includes('bug') || title.includes('error') || title.includes('fix')) {
+              labels.push('bug');
+            }
+            if (title.includes('feat') || title.includes('feature')) {
+              labels.push('enhancement');
+            }
+            if (title.includes('docs') || title.includes('documentation')) {
+              labels.push('documentation');
+            }
+            if (title.includes('stripe') || title.includes('payment')) {
+              labels.push('payment');
+            }
+            if (title.includes('vercel') || title.includes('frontend')) {
+              labels.push('frontend');
+            }
+            if (title.includes('render') || title.includes('backend')) {
+              labels.push('backend');
+            }
+            if (title.includes('urgent') || title.includes('critical')) {
+              labels.push('priority:high');
+            }
+            if (title.includes('workflow') || title.includes('automation')) {
+              labels.push('automation');
+            }
+
+            // Add labels if any found
+            if (labels.length > 0) {
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: labels
+                });
+                console.log(`Added labels: ${labels.join(', ')}`);
+              } catch (error) {
+                console.error('Failed to add labels:', error);
+              }
+            }
+
+      - name: Label based on files changed (PRs only)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            try {
+              const files = await github.rest.pulls.listFiles({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number
+              });
+
+              const labels = new Set();
+
+              files.data.forEach(file => {
+                if (file.filename.startsWith('frontend/')) labels.add('frontend');
+                if (file.filename.startsWith('backend/')) labels.add('backend');
+                if (file.filename.includes('stripe')) labels.add('payment');
+                if (file.filename.includes('.md')) labels.add('documentation');
+                if (file.filename.includes('test')) labels.add('testing');
+                if (file.filename.includes('workflow')) labels.add('automation');
+                if (file.filename.startsWith('.github/')) labels.add('ci/cd');
+              });
+
+              if (labels.size > 0) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  labels: Array.from(labels)
+                });
+                console.log(`Added labels based on files: ${Array.from(labels).join(', ')}`);
+              }
+            } catch (error) {
+              console.error('Failed to process files:', error);
+            }
