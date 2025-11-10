@@ -14,7 +14,7 @@
   "dependencies": {
     "@ai-sdk/xai": "^1.2.18",
     "@stripe/stripe-js": "^2.4.0",
-    "ai": "^4.3.19",
+    "ai": "^5.0.90",
     "axios": "^1.12.0",
     "dotenv": "^16.6.1",
     "i18next": "^23.7.11",
