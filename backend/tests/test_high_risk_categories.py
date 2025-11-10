@@ -1,10 +1,10 @@
 """Tests for the high-risk industry categorisation logic."""
+
 from __future__ import annotations
 
 import pytest
 
 from ..app.models import (
-    HIGH_RISK_CATEGORIES,
     AUDIT_LOG,
     RiskAssessmentRequest,
     calculate_enhanced_risk_score,
