@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder_key_for_build';
+const stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2025-10-29.clover',
 });
 
@@ -49,9 +50,8 @@ export async function POST(request: NextRequest) {
     } : {};
 
     // Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: paymentMethodTypes,
-      payment_method_options: Object.keys(paymentMethodOptions).length > 0 ? paymentMethodOptions : undefined,
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      payment_method_types: paymentMethodTypes as any,
       line_items: [
         {
           price_data: {
@@ -77,9 +77,16 @@ export async function POST(request: NextRequest) {
         currency,
         market: currency === 'KRW' ? 'Korea' : 'International',
       },
-    });
+    };
 
-    return NextResponse.json({ sessionId: session.id });
+    // Add payment method options if available
+    if (Object.keys(paymentMethodOptions).length > 0) {
+      sessionParams.payment_method_options = paymentMethodOptions as any;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
+
+    return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (err: any) {
     console.error('Stripe error:', err);
     return NextResponse.json(
