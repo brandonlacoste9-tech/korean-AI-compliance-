@@ -27,8 +27,8 @@ export default async function handler(
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    const result = streamText({
-      model: xai("grok-2-1212"),
+    const result = await streamText({
+      model: xai("grok-2-1212") as any,
       prompt: prompt,
     });
 
