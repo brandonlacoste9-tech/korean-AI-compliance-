@@ -259,7 +259,7 @@ The `.gitignore` file properly excludes:
 - [ ] **PIPC audit logging**
 - [ ] **Stripe webhooks**
 - [ ] **CI/CD workflow needed**
-- [ ] **Production deployment** (Railway recommended)
+- [ ] **Production deployment** (Render recommended)
 
 ### Compliance
 - [x] Article 31 reference document
@@ -295,7 +295,7 @@ The `.gitignore` file properly excludes:
 
 3. **Deployment Configuration** 🟡 MEDIUM PRIORITY
    - Vercel setup for frontend
-   - Railway setup for backend
+   - Render setup for backend
    - Environment secrets configuration
    - Production database (Supabase Seoul)
 

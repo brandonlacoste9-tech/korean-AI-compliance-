@@ -122,7 +122,7 @@ cd backend
 
 ### 3. Deployment
 See `docs/DEPLOYMENT.md` for detailed deployment instructions including:
-- Vercel/Railway deployment
+- Vercel/Render deployment
 - Environment variable configuration
 - Supabase setup (Seoul region)
 - Stripe integration

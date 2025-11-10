@@ -26,8 +26,14 @@ class EmailAutomation:
     """Handle automated email sequences and campaigns"""
     
     def __init__(self):
-        self.from_email = "AI Compliance Guardian <hello@aicomplianceguardian.kr>"
-        self.reply_to = "support@aicomplianceguardian.kr"
+        self.from_email = os.getenv(
+            "SENDER_EMAIL",
+            "AI Compliance Guardian <hello@aicomplianceguardian.kr>"
+        )
+        self.reply_to = os.getenv(
+            "REPLY_TO_EMAIL",
+            "support@aicomplianceguardian.kr"
+        )
     
     
     def send_checklist_pdf(

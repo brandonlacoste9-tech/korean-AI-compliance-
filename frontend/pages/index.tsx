@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
@@ -14,9 +14,33 @@ export default function Home2026() {
   usePerformance();
 
   const [isDark, setIsDark] = useState(false);
+  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   // Target date: January 22, 2026
   const targetDate = new Date('2026-01-22T00:00:00+09:00');
+
+  useEffect(() => {
+    const calculateCountdown = () => {
+      const now = new Date().getTime();
+      const distance = targetDate.getTime() - now;
+
+      if (distance > 0) {
+        setCountdown({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000)
+        });
+      } else {
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    calculateCountdown();
+    const interval = setInterval(calculateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [targetDate]);
 
   const handleCTAClick = () => {
     trackConversion('trial_started');
@@ -83,12 +107,17 @@ export default function Home2026() {
                   ⏰ AI법 시행까지
                 </p>
                 <div className="flex justify-center gap-4 flex-wrap">
-                  {['일', '시간', '분', '초'].map((unit, i) => (
-                    <div key={unit} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 min-w-[100px] shadow-xl border-2 border-blue-200 dark:border-blue-800">
+                  {[
+                    { label: '일', value: countdown.days },
+                    { label: '시간', value: countdown.hours },
+                    { label: '분', value: countdown.minutes },
+                    { label: '초', value: countdown.seconds }
+                  ].map(({ label, value }) => (
+                    <div key={label} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 min-w-[100px] shadow-xl border-2 border-blue-200 dark:border-blue-800">
                       <div className="text-4xl md:text-5xl font-black text-blue-600 dark:text-blue-400">
-                        {i === 0 ? '437' : i === 1 ? '08' : i === 2 ? '32' : '15'}
+                        {String(value).padStart(2, '0')}
                       </div>
-                      <div className="text-sm font-semibold text-gray-600 dark:text-gray-400 mt-2">{unit}</div>
+                      <div className="text-sm font-semibold text-gray-600 dark:text-gray-400 mt-2">{label}</div>
                     </div>
                   ))}
                 </div>

@@ -46,19 +46,10 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
-          ENABLE_STRIPE_LIVE: ${{ secrets.ENABLE_STRIPE_LIVE }}
-          SEND_EMAIL_NOTIFICATIONS: ${{ secrets.SEND_EMAIL_NOTIFICATIONS }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      - name: Deploy to Render
         run: |
-          npm install -g @railway/cli
-          railway up --service backend
+          echo "Backend deployment is managed by Render's auto-deploy from main branch"
+          echo "Configure auto-deploy at https://dashboard.render.com"
 
   deploy-frontend:
     runs-on: ubuntu-latest

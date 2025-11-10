@@ -12,9 +12,9 @@ Bilingual support (Korean/English) | Obangsaek design system | Compliance-focuse
 - 2026년 1월 22일까지 남은 기간 카운트다운
 
 ### Quickstart
-1. Backend: FastAPI, PIPC audit log, Supabase, Stripe webhook
-2. Frontend: Next.js/React, next-i18next, Obangsaek palette, 배너/뱃지
-3. CI/CD: GitHub Actions, Vercel/Railway, secret scanning
+1. Backend: FastAPI, PIPC audit log, Supabase, Stripe webhook (Render)
+2. Frontend: Next.js/React, next-i18next, Obangsaek palette, 배너/뱃지 (Vercel)
+3. CI/CD: GitHub Actions, Vercel/Render, secret scanning
 
 Project status: MVP deployment underway
 
@@ -33,9 +33,9 @@ Bilingual (KR/EN), Obangsaek color system, compliance-first. SaaS revenue model 
 - Countdown to legal deadline (Jan 22, 2026)
 
 ### Quickstart
-1. Backend: FastAPI, PIPC audit logging, Supabase, Stripe webhook
-2. Frontend: Next.js/React, next-i18next bilingual support, Obangsaek palette
-3. CI/CD: GitHub Actions, Vercel/Railway, secret scanning
+1. Backend: FastAPI, PIPC audit logging, Supabase, Stripe webhook (Render)
+2. Frontend: Next.js/React, next-i18next bilingual support, Obangsaek palette (Vercel)
+3. CI/CD: GitHub Actions, Vercel/Render, secret scanning
 
 ---
 Revenue: SaaS subscription (Stripe KRW)

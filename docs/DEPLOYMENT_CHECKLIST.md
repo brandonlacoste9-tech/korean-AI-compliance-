@@ -1,7 +1,7 @@
 # Deployment Readiness Checklist
 
 **Repository:** korean-AI-compliance-  
-**Target Platforms:** Vercel (Frontend) + Railway (Backend)  
+**Target Platforms:** Vercel (Frontend) + Render (Backend)  
 **Compliance:** Korean AI Basic Law + PIPC  
 **Deadline:** January 22, 2026
 
@@ -22,9 +22,9 @@
 - [ ] Enable automatic deployments from `main` branch
 - [ ] Configure preview deployments for PRs
 
-#### Backend Deployment (Railway)
-- [ ] Create Railway account/project
-- [ ] Connect GitHub repository to Railway
+#### Backend Deployment (Render)
+- [ ] Create Render account/project
+- [ ] Connect GitHub repository to Render
 - [ ] Configure backend service:
   - Root Directory: `/backend`
   - Start Command: TBD (e.g., `uvicorn main:app --host 0.0.0.0 --port $PORT`)
@@ -67,7 +67,7 @@ NEXT_PUBLIC_GA_TRACKING_ID=G-XXXXXXXXXX
 
 ---
 
-### Backend Environment Variables (Railway)
+### Backend Environment Variables (Render)
 
 #### Required Variables
 ```bash
@@ -116,7 +116,7 @@ PIPC_CERTIFICATION_ID=TBD
 ## 🛡️ Security Checklist
 
 ### Secret Management
-- [ ] All secrets stored in platform environment variables (Vercel/Railway)
+- [ ] All secrets stored in platform environment variables (Vercel/Render)
 - [ ] No secrets committed to repository
 - [ ] `.env.example` files provided without actual values
 - [ ] Secret rotation schedule established (quarterly minimum)
@@ -445,7 +445,7 @@ echo "Days remaining: $days_remaining"
 
 ### Deployment Platforms
 - **Vercel Dashboard:** https://vercel.com/dashboard
-- **Railway Dashboard:** https://railway.app/dashboard
+- **Render Dashboard:** https://railway.app/dashboard
 - **Supabase Dashboard:** https://app.supabase.com
 
 ---
