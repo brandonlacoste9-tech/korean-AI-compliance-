@@ -199,7 +199,7 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
         raise HTTPException(status_code=500, detail="Risk assessment failed")
 
 # Stripe checkout endpoint
-@app.post("/api/stripe/create-checkout")
+@app.post("/api/stripe/create-checkout-session")
 async def create_checkout(request: CheckoutRequest, req: Request):
     """
     Create Stripe checkout session for paid plans.
@@ -287,3 +287,128 @@ async def create_checkout(request: CheckoutRequest, req: Request):
             extra={"extra_fields": {"plan": request.plan, "error": str(e)}},
         )
         raise HTTPException(status_code=500, detail="Failed to create checkout session")
+
+# Stripe webhook endpoint
+@app.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """
+    Handle Stripe webhook events for payment processing.
+
+    Processes events like:
+    - checkout.session.completed: Payment succeeded
+    - payment_intent.succeeded: Payment confirmed
+    - customer.subscription.created: New subscription
+    """
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+    webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+    # Log webhook received
+    logger.info("Stripe webhook received", extra={"extra_fields": {"has_signature": bool(sig_header)}})
+
+    try:
+        # Verify webhook signature if secret is configured
+        if webhook_secret and sig_header:
+            try:
+                event = stripe.Webhook.construct_event(
+                    payload, sig_header, webhook_secret
+                )
+            except stripe.error.SignatureVerificationError as e:
+                logger.error(
+                    f"Webhook signature verification failed: {str(e)}",
+                    extra={"extra_fields": {"error": str(e)}}
+                )
+                raise HTTPException(status_code=400, detail="Invalid signature")
+        else:
+            # Development mode - no signature verification
+            import json
+            event = json.loads(payload)
+            logger.warning("Webhook processed without signature verification (dev mode)")
+
+        # Handle the event
+        event_type = event.get("type")
+        event_data = event.get("data", {}).get("object", {})
+
+        logger.info(
+            f"Processing Stripe event: {event_type}",
+            extra={"extra_fields": {
+                "event_type": event_type,
+                "event_id": event.get("id")
+            }}
+        )
+
+        # Handle checkout session completed
+        if event_type == "checkout.session.completed":
+            session_id = event_data.get("id")
+            customer_email = event_data.get("customer_email")
+            amount_total = event_data.get("amount_total", 0) / 100  # Convert cents to currency
+            metadata = event_data.get("metadata", {})
+            plan = metadata.get("plan", "unknown")
+
+            logger.info(
+                "Checkout completed successfully",
+                extra={"extra_fields": {
+                    "session_id": session_id,
+                    "customer_email": customer_email,
+                    "amount": amount_total,
+                    "plan": plan
+                }}
+            )
+
+            # TODO: Save to database
+            # - Create/update user account
+            # - Activate subscription
+            # - Send confirmation email
+
+        # Handle payment intent succeeded
+        elif event_type == "payment_intent.succeeded":
+            payment_intent_id = event_data.get("id")
+            amount = event_data.get("amount", 0) / 100
+
+            logger.info(
+                "Payment confirmed",
+                extra={"extra_fields": {
+                    "payment_intent_id": payment_intent_id,
+                    "amount": amount
+                }}
+            )
+
+        # Handle subscription events
+        elif event_type in ["customer.subscription.created", "customer.subscription.updated"]:
+            subscription_id = event_data.get("id")
+            status = event_data.get("status")
+
+            logger.info(
+                f"Subscription {event_type.split('.')[-1]}",
+                extra={"extra_fields": {
+                    "subscription_id": subscription_id,
+                    "status": status
+                }}
+            )
+
+        # Handle failed payments
+        elif event_type == "payment_intent.payment_failed":
+            payment_intent_id = event_data.get("id")
+            error_message = event_data.get("last_payment_error", {}).get("message", "Unknown error")
+
+            logger.error(
+                "Payment failed",
+                extra={"extra_fields": {
+                    "payment_intent_id": payment_intent_id,
+                    "error": error_message
+                }}
+            )
+
+            # TODO: Send payment failed email to customer
+
+        else:
+            logger.debug(f"Unhandled event type: {event_type}")
+
+        return {"status": "success", "event_type": event_type}
+
+    except Exception as e:
+        logger.error(
+            f"Webhook processing error: {str(e)}",
+            extra={"extra_fields": {"error": str(e)}}
+        )
+        raise HTTPException(status_code=500, detail="Webhook processing failed")
