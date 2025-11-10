@@ -5,7 +5,7 @@ Handles welcome sequences, drip campaigns, and PDF delivery
 
 import os
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional
+from typing import Dict, Optional
 import resend
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 import logging

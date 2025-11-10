@@ -18,9 +18,6 @@ export default function Home() {
   // Performance optimization
   usePerformance();
 
-  // Target date: January 22, 2026
-  const targetDate = new Date('2026-01-22T00:00:00+09:00');
-
   // Track CTA clicks
   const handleCTAClick = () => {
     trackConversion('trial_started');
