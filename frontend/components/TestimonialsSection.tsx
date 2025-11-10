@@ -122,7 +122,7 @@ export default function TestimonialsSection() {
 
               {/* Quote */}
               <blockquote className="text-gray-700 mb-6 italic">
-                "{isKorean ? testimonial.quoteKo : testimonial.quote}"
+                &ldquo;{isKorean ? testimonial.quoteKo : testimonial.quote}&rdquo;
               </blockquote>
 
               {/* Author */}
