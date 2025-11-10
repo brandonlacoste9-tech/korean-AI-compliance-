@@ -63,19 +63,17 @@ export default function Home() {
         body: JSON.stringify({ plan, riskScore, currency }),
       });
 
-      const { sessionId } = await response.json();
-      const stripe = await stripePromise;
+      const data = await response.json();
 
-      // Redirect to Stripe Checkout
-      const { error } = await stripe!.redirectToCheckout({ sessionId });
-
-      if (error) {
-        console.error('Stripe checkout error:', error);
-        alert('Payment failed. Please try again.');
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || 'Failed to create checkout session');
       }
-    } catch (err) {
+
+      // Redirect to Stripe Checkout URL
+      window.location.href = data.url;
+    } catch (err: any) {
       console.error('Checkout error:', err);
-      alert('Something went wrong. Please try again.');
+      alert(err.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
