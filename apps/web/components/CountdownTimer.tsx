@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'next-i18next';
 
 interface TimeLeft {
@@ -10,7 +10,7 @@ interface TimeLeft {
 
 export default function CountdownTimer() {
   const { t, i18n } = useTranslation('common');
-  const targetDate = new Date('2026-01-22T00:00:00+09:00');
+  const targetDate = useMemo(() => new Date('2026-01-22T00:00:00+09:00'), []);
   
   const calculateTimeLeft = (): TimeLeft => {
     const now = new Date();
@@ -36,6 +36,7 @@ export default function CountdownTimer() {
     }, 1000);
 
     return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isKorean = i18n.language === 'ko';

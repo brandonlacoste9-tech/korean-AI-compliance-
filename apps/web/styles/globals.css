@@ -11,13 +11,10 @@
     --color-heuk: 26 26 26;
     --color-hwang: 247 181 0;
   }
-
-  * {
-    @apply border-border;
-  }
   
   body {
-    @apply bg-white text-heuk;
+    @apply bg-white;
+    color: rgb(26, 26, 26);
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

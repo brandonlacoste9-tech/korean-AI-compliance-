@@ -3,6 +3,7 @@ import { GetServerSideProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import ComplianceBadge from '@/components/ComplianceBadge';
 
@@ -156,12 +157,12 @@ export default function BadgeVerificationPage() {
                   ? '귀사도 준법 인증을 받고 싶으신가요?' 
                   : 'Want to get compliance certification for your organization?'}
               </p>
-              <a
+              <Link
                 href="/pricing"
                 className="inline-block px-8 py-3 bg-obangsaek-cheong text-white rounded-lg font-bold hover:bg-obangsaek-cheong-dark transition-colors"
               >
                 {isKorean ? '시작하기' : 'Get Started'}
-              </a>
+              </Link>
             </div>
           </div>
         </div>
