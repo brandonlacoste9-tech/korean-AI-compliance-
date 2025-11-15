@@ -1,11 +1,17 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any, List
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+
+# Import compliance modules
+from app.pipa_rules_kr import PIPARulesKR
+from app.ai_risk_analyzer import AIRiskAnalyzer
+from app.privacy_scanner import PrivacyScanner
+from app.report_generator import ReportGenerator
 
 # Load environment variables
 load_dotenv()
@@ -203,6 +209,217 @@ async def internal_error_handler(request: Request, exc: Exception):
             "message_ko": "예기치 않은 오류가 발생했습니다",
         },
     )
+
+# ===========================================================
+# Task #2: Compliance Rule Engine API Endpoints
+# ===========================================================
+
+# Initialize compliance modules
+pipa_checker = PIPARulesKR()
+ai_risk_analyzer = AIRiskAnalyzer()
+privacy_scanner = PrivacyScanner()
+report_generator = ReportGenerator()
+
+# Request Models
+class ScanRequest(BaseModel):
+    """Privacy scan request model"""
+    text: Optional[str] = None
+    context: str = ""
+    system_config: Optional[Dict[str, Any]] = None
+
+class AnalyzeRequest(BaseModel):
+    """AI risk analysis request model"""
+    system_type: str
+    uses_personal_data: bool = False
+    decision_impact_level: str = "low"
+    has_transparency: bool = True
+    user_count: int = 0
+    is_automated: bool = False
+    uses_biometric_data: bool = False
+    application_domain: str = ""
+
+class ReportRequest(BaseModel):
+    """Report generation request model"""
+    pipa_results: Optional[Dict[str, Any]] = None
+    ai_risk_results: Optional[Dict[str, Any]] = None
+    privacy_scan_results: Optional[Dict[str, Any]] = None
+    report_type: str = "full"
+    lang: str = "ko"
+
+class RiskScoreRequest(BaseModel):
+    """PIPA compliance check request model"""
+    has_consent: bool = False
+    purpose_defined: bool = False
+    data_minimized: bool = False
+    retention_compliant: bool = False
+    security_measures: bool = False
+    data_in_seoul: bool = False
+    audit_enabled: bool = False
+    user_rights_enabled: bool = False
+
+@app.post("/api/scan")
+async def scan_privacy(request: ScanRequest):
+    """
+    Privacy scan endpoint
+    개인정보 보호 스캔 엔드포인트
+    
+    Scans text or system configuration for privacy compliance issues.
+    """
+    try:
+        if request.text:
+            # Scan text for sensitive data
+            results = privacy_scanner.scan_text(request.text, request.context)
+        elif request.system_config:
+            # Scan system configuration
+            results = privacy_scanner.scan_system(request.system_config)
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "Bad Request",
+                    "message": "Either text or system_config must be provided",
+                    "message_ko": "text 또는 system_config 중 하나를 제공해야 합니다"
+                }
+            )
+        
+        return {
+            "success": True,
+            "data": results,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Scan Failed",
+                "message": str(e),
+                "message_ko": "스캔 실패"
+            }
+        )
+
+@app.post("/api/analyze")
+async def analyze_ai_risk(request: AnalyzeRequest):
+    """
+    AI risk analysis endpoint
+    AI 위험 분석 엔드포인트
+    
+    Analyzes AI system for risk level according to Korean AI Basic Act.
+    """
+    try:
+        system_data = request.dict()
+        results = ai_risk_analyzer.analyze_risk(system_data)
+        
+        return {
+            "success": True,
+            "data": results,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Analysis Failed",
+                "message": str(e),
+                "message_ko": "분석 실패"
+            }
+        )
+
+@app.post("/api/report")
+async def generate_compliance_report(request: ReportRequest):
+    """
+    Compliance report generation endpoint
+    준법 보고서 생성 엔드포인트
+    
+    Generates comprehensive compliance report in Korean or English.
+    """
+    try:
+        report = report_generator.generate_report(
+            pipa_results=request.pipa_results,
+            ai_risk_results=request.ai_risk_results,
+            privacy_scan_results=request.privacy_scan_results,
+            report_type=request.report_type,
+            lang=request.lang
+        )
+        
+        return {
+            "success": True,
+            "data": report,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Report Generation Failed",
+                "message": str(e),
+                "message_ko": "보고서 생성 실패"
+            }
+        )
+
+@app.post("/api/risk-score")
+async def calculate_pipa_risk_score(request: RiskScoreRequest):
+    """
+    PIPA risk score calculation endpoint
+    PIPA 위험 점수 계산 엔드포인트
+    
+    Calculates PIPA compliance risk score based on system configuration.
+    """
+    try:
+        data = request.dict()
+        results = pipa_checker.check_compliance(data)
+        
+        # Get recommendations
+        if results.get("violation_details"):
+            recommendations = pipa_checker.get_recommendations(
+                results["violation_details"],
+                lang="ko"
+            )
+            results["recommendations"] = recommendations
+        
+        return {
+            "success": True,
+            "data": results,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Risk Score Calculation Failed",
+                "message": str(e),
+                "message_ko": "위험 점수 계산 실패"
+            }
+        )
+
+# High-risk categories endpoint
+@app.get("/api/high-risk-categories")
+async def get_high_risk_categories(lang: str = "ko"):
+    """
+    Get list of high-risk AI categories per Korean AI Basic Act
+    한국 AI 기본법 고위험 AI 분야 목록
+    """
+    try:
+        categories = ai_risk_analyzer.get_high_risk_categories(lang)
+        
+        return {
+            "success": True,
+            "data": categories,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to retrieve categories",
+                "message": str(e),
+                "message_ko": "카테고리 조회 실패"
+            }
+        )
 
 if __name__ == "__main__":
     import uvicorn

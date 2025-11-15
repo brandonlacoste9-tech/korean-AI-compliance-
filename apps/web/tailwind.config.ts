@@ -9,7 +9,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Obangsaek (오방색) - Traditional Korean Five Colors
+        // 🇰🇷 Korean Government Official Palette (Taeguk + Government UI)
+        // Black / White / Red / Blue — National Colors
+        taegukRed: '#C60C30',      // 태극 빨강 - warnings, required, errors
+        taegukBlue: '#003478',     // 태극 파랑 - primary government blue
+        govWhite: '#FFFFFF',       // 정부 흰색
+        govBlack: '#101010',       // 정부 검정
+        govGrayLight: '#F2F2F2',   // 정부 연한 회색
+        govGray: '#C2C2C2',        // 정부 회색
+        obangYellow: '#FDB813',    // 오방색 황색 - highlights, badges
+        
+        // Obangsaek (오방색) - Traditional Korean Five Colors (preserved)
         obangsaek: {
           // 백 (White/Center) - Purity, righteousness
           white: '#FFFFFF',
@@ -35,8 +45,8 @@ const config: Config = {
           approved: '#10B981',
           pending: '#F59E0B',
           rejected: '#EF4444',
-          msit: '#003D82',
-          pipc: '#CD2E3A',
+          msit: '#003478',          // Updated to match taegukBlue
+          pipc: '#C60C30',          // Updated to match taegukRed
         },
       },
       backdropBlur: {
