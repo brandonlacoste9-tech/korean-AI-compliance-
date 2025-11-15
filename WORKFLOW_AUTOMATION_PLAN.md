@@ -624,6 +624,57 @@ Use Vercel Cron to trigger workflows:
 
 ---
 
+## 🤖 Auto PR Triage Workflow (IMPLEMENTED)
+
+**Status**: ✅ Active and Running
+
+**Purpose**: Automatically manage PR lifecycle, close outdated PRs, rebase medium-priority PRs, and ensure code quality.
+
+**Location**: `.github/workflows/auto-pr-triage.yml`
+
+**Triggers:**
+- Daily schedule at 9 AM UTC (6 PM KST)
+- Manual dispatch via workflow_dispatch
+- On PR events (opened, synchronize, reopened)
+
+**Features:**
+1. **Automatic PR Classification**
+   - Analyzes PR titles to determine action (keep, close, rebase, review)
+   - Configurable patterns for different PR types
+
+2. **Automated Cleanup**
+   - Closes outdated PRs with bilingual Korean/English messages
+   - Provides clear reasoning and reopen instructions
+
+3. **Smart Rebasing**
+   - Automatically rebases medium-priority PRs
+   - Keeps PRs aligned with base branches
+
+4. **Quality Checks**
+   - Runs lint and build on frontend code
+   - Integrates CodeQL security analysis for high-priority PRs
+   - Enforces Korean AI compliance standards
+
+5. **Status Reporting**
+   - Posts detailed status comments in formal Korean (존댓말) and English
+   - Includes compliance markers (PIPC, Korean AI 기본법)
+   - Provides rerun commands
+
+**Compliance Features:**
+- ✅ Formal Korean language (존댓말) in all messages
+- ✅ Korean AI Basic Law compliance markers
+- ✅ PIPC guidelines adherence
+- ✅ Bilingual support (Korean/English)
+
+**Benefits:**
+- Reduces manual PR management overhead
+- Ensures code quality before merge
+- Maintains repository cleanliness
+- Enforces compliance standards automatically
+- Provides clear communication to contributors
+
+---
+
 ## 📈 Next Steps
 
 ### Immediate (After Deployment Complete)
@@ -668,6 +719,6 @@ Use Vercel Cron to trigger workflows:
 
 ---
 
-*Last updated: 2025-11-10*
-*Status: Ready to implement*
-*Priority: Implement after deployment completion*
+*Last updated: 2025-11-15*
+*Status: Auto PR Triage implemented and active*
+*Priority: Continue with health monitoring and user workflows*
