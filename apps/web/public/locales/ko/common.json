@@ -1,0 +1,47 @@
+{
+  "site": {
+    "title": "AI 준법 가디언",
+    "description": "한국 AI 기본법 및 PIPC 준수 SaaS"
+  },
+  "nav": {
+    "home": "홈",
+    "compliance": "준법 가이드",
+    "pricing": "요금제",
+    "dashboard": "대시보드",
+    "faq": "자주 묻는 질문",
+    "contact": "문의하기"
+  },
+  "hero": {
+    "title": "AI 준법 가디언 🇰🇷",
+    "subtitle": "한국 인공지능 기본법 완벽 대응",
+    "description": "2026년 1월 22일 시행까지 완벽 준비. MSIT 인증 · PIPC 준수 · 서울 데이터 센터",
+    "cta_pricing": "요금제 보기",
+    "cta_compliance": "준법 가이드"
+  },
+  "countdown": {
+    "title": "AI 기본법 시행일까지",
+    "date": "2026년 1월 22일 (수) 오전 12시",
+    "days": "일",
+    "hours": "시간",
+    "minutes": "분",
+    "seconds": "초",
+    "message": "준비 시간이 얼마 남지 않았습니다. 지금 시작하세요!"
+  },
+  "features": {
+    "title": "주요 기능",
+    "audit_logging": "PIPC 감사 로깅",
+    "certification": "MSIT/PIPC 인증",
+    "bilingual": "이중 언어 지원"
+  },
+  "compliance": {
+    "msit": "과학기술정보통신부",
+    "pipc": "개인정보보호위원회",
+    "iso42001": "AI 관리 시스템"
+  },
+  "common": {
+    "back_home": "홈으로",
+    "get_started": "시작하기",
+    "contact_us": "문의하기",
+    "learn_more": "자세히 보기"
+  }
+}
