@@ -6,6 +6,15 @@ from typing import Any, Dict, Optional
 import stripe
 from app.logging_config import get_logger, setup_logging
 from app.middleware import ErrorHandlingMiddleware, RequestLoggingMiddleware
+from app.logging_config import setup_logging, get_logger
+from app.middleware import RequestLoggingMiddleware, ErrorHandlingMiddleware
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
+from app.email_automation import EmailAutomation
+from app.database import init_db, SessionLocal
+from app.audit_endpoints import router as audit_router
+from app.audit_models import ConsentLog
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -17,6 +26,52 @@ load_dotenv()
 
 # Initialize Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+
+# Database setup
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+if DATABASE_URL:
+    # Fix for Supabase connection pooling
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    Base = declarative_base()
+
+    # Database models
+    class RiskAssessmentDB(Base):
+        __tablename__ = "risk_assessments"
+
+        id = Column(Integer, primary_key=True, index=True)
+        company_name = Column(String, nullable=False)
+        email = Column(String, nullable=False)
+        ai_usage = Column(Text, nullable=False)
+        processes_personal_data = Column(Boolean, default=False)
+        risk_score = Column(Integer, default=0)
+        recommendation = Column(String, nullable=True)
+        timestamp = Column(DateTime, default=datetime.utcnow)
+        locale = Column(String, nullable=True)
+
+    class SubscriptionDB(Base):
+        __tablename__ = "subscriptions"
+
+        id = Column(Integer, primary_key=True, index=True)
+        email = Column(String, nullable=False)
+        stripe_customer_id = Column(String, nullable=True)
+        stripe_subscription_id = Column(String, nullable=True)
+        plan = Column(String, nullable=False)
+        status = Column(String, default="active")
+        created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Create tables
+    Base.metadata.create_all(bind=engine)
+    db_enabled = True
+else:
+    db_enabled = False
+    logger = get_logger(__name__)
+    logger.warning("DATABASE_URL not set - running without database persistence")
+
+# Initialize email automation
+email_automation = EmailAutomation()
 
 # Setup logging (JSON format in production, readable format in development)
 is_production = os.getenv("ENVIRONMENT", "development") == "production"
@@ -38,7 +93,20 @@ app = FastAPI(
 app.add_middleware(ErrorHandlingMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
+# Include audit logging router for PIPC compliance
+app.include_router(audit_router)
+
 logger.info(f"Starting AI Compliance Guardian API (Python {sys.version})")
+
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database tables on application startup."""
+    try:
+        init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
 
 # CORS - allow your Vercel frontend (production + all preview deployments) and localhost
 app.add_middleware(
@@ -142,7 +210,12 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
     Assess AI compliance risk based on usage and data processing.
 
     Calculates risk score and provides compliance recommendations.
+    
+    **PIPC Compliance:** This endpoint automatically logs consent and AI processing
+    for Korean AI Basic Act transparency requirements.
     """
+    client_ip = req.client.host if req.client else "unknown"
+    
     logger.info(
         "Risk assessment requested",
         extra={
@@ -150,7 +223,7 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
                 "company": request.company_name,
                 "ai_usage": request.ai_usage[:50],  # Truncate for logging
                 "processes_personal_data": request.processes_personal_data,
-                "client_ip": req.client.host if req.client else None,
+                "client_ip": client_ip,
             }
         },
     )
@@ -181,6 +254,42 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
 
         recommendation = "professional" if risk_score >= 50 else "starter"
 
+        # Save to database
+        if db_enabled:
+            try:
+                db = SessionLocal()
+                assessment = RiskAssessmentDB(
+                    company_name=request.company_name,
+                    email=request.email,
+                    ai_usage=request.ai_usage,
+                    processes_personal_data=request.processes_personal_data,
+                    risk_score=risk_score,
+                    recommendation=recommendation,
+                    locale=request.locale
+                )
+                db.add(assessment)
+                db.commit()
+                db.refresh(assessment)
+                db.close()
+                logger.info(f"Assessment saved to database: ID {assessment.id}")
+            except Exception as db_error:
+                logger.error(f"Database save failed: {str(db_error)}")
+
+        # Send welcome email
+        try:
+            first_name = request.company_name.split()[0]  # Extract first word as name
+            language = "ko" if request.locale and request.locale.startswith("ko") else "en"
+
+            email_result = email_automation.send_welcome_email(
+                to_email=request.email,
+                first_name=first_name,
+                company_name=request.company_name,
+                language=language
+            )
+            logger.info(f"Welcome email sent: {email_result}")
+        except Exception as email_error:
+            logger.error(f"Email send failed: {str(email_error)}")
+
         result = {
             "risk_score": risk_score,
             "recommendation": recommendation,
@@ -197,6 +306,32 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
                 }
             },
         )
+        
+        # PIPC Compliance: Log consent if provided
+        if request.consent_given is not None:
+            db = SessionLocal()
+            try:
+                consent_log = ConsentLog(
+                    user_identifier=request.email,
+                    ip_address=client_ip,
+                    consent_type="risk_assessment",
+                    consent_text="I consent to AI risk assessment processing (AI 위험 평가 처리에 동의합니다)",
+                    consent_method="api_submission",
+                    consent_given=request.consent_given,
+                    extra_metadata={
+                        "company_name": request.company_name,
+                        "locale": request.locale or "ko"
+                    },
+                    timestamp=datetime.utcnow()
+                )
+                db.add(consent_log)
+                db.commit()
+                logger.debug(f"Consent logged for {request.email}")
+            except Exception as log_error:
+                logger.warning(f"Failed to log consent: {str(log_error)}")
+                db.rollback()
+            finally:
+                db.close()
 
         return result
 
@@ -328,22 +463,36 @@ async def stripe_webhook(request: Request):
     )
 
     try:
-        # Verify webhook signature if secret is configured
+        # Verify webhook signature (required in production)
+        if not webhook_secret:
+            if is_production:
+                logger.error("STRIPE_WEBHOOK_SECRET not configured in production!")
+                raise HTTPException(status_code=500, detail="Webhook secret not configured")
+            else:
+                logger.warning("STRIPE_WEBHOOK_SECRET not set - development mode")
+
         if webhook_secret and sig_header:
             try:
                 event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+                event = stripe.Webhook.construct_event(
+                    payload, sig_header, webhook_secret
+                )
+                logger.info("Webhook signature verified successfully")
             except stripe.error.SignatureVerificationError as e:
                 logger.error(
                     f"Webhook signature verification failed: {str(e)}",
                     extra={"extra_fields": {"error": str(e)}},
                 )
                 raise HTTPException(status_code=400, detail="Invalid signature")
-        else:
-            # Development mode - no signature verification
+        elif not is_production:
+            # Development mode only - allow testing without signature
             import json
 
             event = json.loads(payload)
-            logger.warning("Webhook processed without signature verification (dev mode)")
+            logger.warning("⚠️ Webhook processed without signature verification (dev mode only)")
+        else:
+            logger.error("Missing webhook signature in production")
+            raise HTTPException(status_code=400, detail="Missing signature")
 
         # Handle the event
         event_type = event.get("type")
@@ -361,6 +510,8 @@ async def stripe_webhook(request: Request):
             amount_total = event_data.get("amount_total", 0) / 100  # Convert cents to currency
             metadata = event_data.get("metadata", {})
             plan = metadata.get("plan", "unknown")
+            stripe_customer_id = event_data.get("customer")
+            stripe_subscription_id = event_data.get("subscription")
 
             logger.info(
                 "Checkout completed successfully",
@@ -374,10 +525,38 @@ async def stripe_webhook(request: Request):
                 },
             )
 
-            # TODO: Save to database
-            # - Create/update user account
-            # - Activate subscription
-            # - Send confirmation email
+            # Save subscription to database
+            if db_enabled and customer_email:
+                try:
+                    db = SessionLocal()
+                    subscription = SubscriptionDB(
+                        email=customer_email,
+                        stripe_customer_id=stripe_customer_id,
+                        stripe_subscription_id=stripe_subscription_id,
+                        plan=plan,
+                        status="active"
+                    )
+                    db.add(subscription)
+                    db.commit()
+                    db.close()
+                    logger.info(f"Subscription saved to database for {customer_email}")
+                except Exception as db_error:
+                    logger.error(f"Failed to save subscription: {str(db_error)}")
+
+            # Send confirmation email
+            if customer_email:
+                try:
+                    first_name = customer_email.split("@")[0]
+                    email_automation.send_payment_confirmation(
+                        to_email=customer_email,
+                        first_name=first_name,
+                        plan=plan,
+                        amount=amount_total,
+                        language="ko"
+                    )
+                    logger.info(f"Payment confirmation email sent to {customer_email}")
+                except Exception as email_error:
+                    logger.error(f"Failed to send confirmation email: {str(email_error)}")
 
         # Handle payment intent succeeded
         elif event_type == "payment_intent.succeeded":

@@ -1,0 +1,47 @@
+{
+  "site": {
+    "title": "AI Compliance Guardian",
+    "description": "Korean AI Basic Act & PIPC Compliance SaaS"
+  },
+  "nav": {
+    "home": "Home",
+    "compliance": "Compliance Guide",
+    "pricing": "Pricing",
+    "dashboard": "Dashboard",
+    "faq": "FAQ",
+    "contact": "Contact"
+  },
+  "hero": {
+    "title": "AI Compliance Guardian 🇰🇷",
+    "subtitle": "Korean AI Basic Act Compliance Solution",
+    "description": "Complete preparation for Jan 22, 2026. MSIT certified · PIPC compliant · Seoul data center",
+    "cta_pricing": "View Pricing",
+    "cta_compliance": "Compliance Guide"
+  },
+  "countdown": {
+    "title": "Time Until AI Basic Act",
+    "date": "January 22, 2026 (Wed) 00:00 KST",
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds",
+    "message": "Time is running out. Start preparing now!"
+  },
+  "features": {
+    "title": "Key Features",
+    "audit_logging": "PIPC Audit Logging",
+    "certification": "MSIT/PIPC Certified",
+    "bilingual": "Bilingual Support"
+  },
+  "compliance": {
+    "msit": "Ministry of Science and ICT",
+    "pipc": "Personal Information Protection Commission",
+    "iso42001": "AI Management System"
+  },
+  "common": {
+    "back_home": "Back to Home",
+    "get_started": "Get Started",
+    "contact_us": "Contact Us",
+    "learn_more": "Learn More"
+  }
+}

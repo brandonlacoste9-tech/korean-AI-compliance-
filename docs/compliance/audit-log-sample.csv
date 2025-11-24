@@ -1,0 +1,9 @@
+ID,작업 (Action),작업자 (Actor),리소스 유형 (Resource Type),리소스 ID (Resource ID),IP 주소 (IP Address),목적 (Purpose),결과 (Result),타임스탬프 (Timestamp KST)
+1,risk_assessment,user@example.com,assessment_data,ASSESS-001,192.168.1.100,compliance_evaluation,success,2025-11-24 09:15:23 KST
+2,data_export,admin@company.kr,audit_logs,EXPORT-001,203.0.113.50,msit_inspection_preparation,success,2025-11-24 10:30:45 KST
+3,consent_log_access,compliance.officer@company.kr,consent_records,CONSENT-2025-11,10.0.0.15,pipc_audit_review,success,2025-11-24 11:22:10 KST
+4,ai_processing,system@ai-guardian,ai_model,MODEL-RISK-V1,172.16.0.5,automated_risk_assessment,success,2025-11-24 12:45:33 KST
+5,user_data_access,support@company.kr,user_profile,USER-12345,192.168.1.55,customer_support_request,success,2025-11-24 14:05:19 KST
+6,policy_update,admin@company.kr,privacy_policy,POLICY-2025-V2,203.0.113.50,korean_ai_act_compliance_update,success,2025-11-24 15:18:42 KST
+7,data_deletion,user@example.com,personal_data,USER-67890,192.168.1.100,user_requested_deletion,success,2025-11-24 16:33:27 KST
+8,security_scan,system@security,application,APP-MAIN,10.0.0.20,weekly_security_audit,success,2025-11-24 18:00:00 KST
