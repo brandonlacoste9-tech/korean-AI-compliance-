@@ -359,9 +359,9 @@ async def export_audit_logs_csv(
             
             for log in logs:
                 # Convert UTC to KST (+9 hours) for PIPC compliance
-                kst_time = log.timestamp.replace(tzinfo=timezone.utc).astimezone(
-                    tz=None  # System timezone should be KST for Korean servers
-                ).strftime("%Y-%m-%d %H:%M:%S KST")
+                from datetime import timedelta
+                kst_tz = timezone(timedelta(hours=9))
+                kst_time = log.timestamp.replace(tzinfo=timezone.utc).astimezone(kst_tz).strftime("%Y-%m-%d %H:%M:%S KST")
                 
                 writer.writerow([
                     log.id,
@@ -389,10 +389,11 @@ async def export_audit_logs_csv(
                 "타임스탬프 (Timestamp KST)"
             ])
             
+            from datetime import timedelta
+            kst_tz = timezone(timedelta(hours=9))
+            
             for log in logs:
-                kst_time = log.timestamp.replace(tzinfo=timezone.utc).astimezone(
-                    tz=None
-                ).strftime("%Y-%m-%d %H:%M:%S KST")
+                kst_time = log.timestamp.replace(tzinfo=timezone.utc).astimezone(kst_tz).strftime("%Y-%m-%d %H:%M:%S KST")
                 
                 writer.writerow([
                     log.id,
@@ -421,10 +422,11 @@ async def export_audit_logs_csv(
                 "결과 (Result)", "타임스탬프 (Timestamp KST)"
             ])
             
+            from datetime import timedelta
+            kst_tz = timezone(timedelta(hours=9))
+            
             for log in logs:
-                kst_time = log.timestamp.replace(tzinfo=timezone.utc).astimezone(
-                    tz=None
-                ).strftime("%Y-%m-%d %H:%M:%S KST")
+                kst_time = log.timestamp.replace(tzinfo=timezone.utc).astimezone(kst_tz).strftime("%Y-%m-%d %H:%M:%S KST")
                 
                 writer.writerow([
                     log.id,

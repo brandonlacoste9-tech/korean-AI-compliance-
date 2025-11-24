@@ -8,8 +8,9 @@ from datetime import datetime
 import stripe
 from app.logging_config import setup_logging, get_logger
 from app.middleware import RequestLoggingMiddleware, ErrorHandlingMiddleware
-from app.database import init_db
+from app.database import init_db, SessionLocal
 from app.audit_endpoints import router as audit_router
+from app.audit_models import ConsentLog
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -207,9 +208,6 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
         
         # PIPC Compliance: Log consent if provided
         if request.consent_given is not None:
-            from app.audit_models import ConsentLog
-            from app.database import SessionLocal
-            
             db = SessionLocal()
             try:
                 consent_log = ConsentLog(
