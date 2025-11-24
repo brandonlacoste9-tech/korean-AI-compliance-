@@ -142,28 +142,58 @@ jobs:
         run: |
           echo "🏗️ Validating Infrastructure Configurations..."
           
+          # Install validation tools
+          pip install PyYAML
+          
           # Check for deployment config files
           configs_found=0
           
           if [ -f "vercel.json" ]; then
-            echo "✅ Vercel configuration found"
-            configs_found=$((configs_found + 1))
+            echo "Validating vercel.json..."
+            if python3 -m json.tool vercel.json > /dev/null 2>&1; then
+              echo "✅ Vercel configuration found and valid JSON"
+              configs_found=$((configs_found + 1))
+            else
+              echo "❌ Vercel configuration has invalid JSON syntax"
+              exit 1
+            fi
           fi
           
-          if [ -f "render.yaml" ] || [ -f "backend/render.yaml" ]; then
-            echo "✅ Render configuration found"
-            configs_found=$((configs_found + 1))
+          if [ -f "render.yaml" ]; then
+            echo "Validating render.yaml..."
+            if python3 -c "import yaml; yaml.safe_load(open('render.yaml'))" 2>/dev/null; then
+              echo "✅ Render configuration found and valid YAML"
+              configs_found=$((configs_found + 1))
+            else
+              echo "❌ Render configuration has invalid YAML syntax"
+              exit 1
+            fi
+          elif [ -f "backend/render.yaml" ]; then
+            echo "Validating backend/render.yaml..."
+            if python3 -c "import yaml; yaml.safe_load(open('backend/render.yaml'))" 2>/dev/null; then
+              echo "✅ Backend Render configuration found and valid YAML"
+              configs_found=$((configs_found + 1))
+            else
+              echo "❌ Backend Render configuration has invalid YAML syntax"
+              exit 1
+            fi
           fi
           
           if [ -f "docker-compose.yml" ]; then
-            echo "✅ Docker Compose configuration found"
-            configs_found=$((configs_found + 1))
+            echo "Validating docker-compose.yml..."
+            if python3 -c "import yaml; yaml.safe_load(open('docker-compose.yml'))" 2>/dev/null; then
+              echo "✅ Docker Compose configuration found and valid YAML"
+              configs_found=$((configs_found + 1))
+            else
+              echo "❌ Docker Compose configuration has invalid YAML syntax"
+              exit 1
+            fi
           fi
           
           if [ $configs_found -eq 0 ]; then
             echo "⚠️ No deployment configurations found"
           else
-            echo "✅ Found $configs_found deployment configuration(s)"
+            echo "✅ Found and validated $configs_found deployment configuration(s)"
           fi
       
       - name: Validate environment variables
@@ -381,7 +411,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Run secret scanning
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@v3.63.2
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
