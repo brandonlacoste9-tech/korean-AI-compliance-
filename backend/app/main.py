@@ -8,6 +8,8 @@ from datetime import datetime
 import stripe
 from app.logging_config import setup_logging, get_logger
 from app.middleware import RequestLoggingMiddleware, ErrorHandlingMiddleware
+from app.database import init_db
+from app.audit_endpoints import router as audit_router
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -36,7 +38,20 @@ app = FastAPI(
 app.add_middleware(ErrorHandlingMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
+# Include audit logging router for PIPC compliance
+app.include_router(audit_router)
+
 logger.info(f"Starting AI Compliance Guardian API (Python {sys.version})")
+
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database tables on application startup."""
+    try:
+        init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
 
 # CORS - allow your Vercel frontend (production + all preview deployments) and localhost
 app.add_middleware(
@@ -137,7 +152,12 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
     Assess AI compliance risk based on usage and data processing.
 
     Calculates risk score and provides compliance recommendations.
+    
+    **PIPC Compliance:** This endpoint automatically logs consent and AI processing
+    for Korean AI Basic Act transparency requirements.
     """
+    client_ip = req.client.host if req.client else "unknown"
+    
     logger.info(
         "Risk assessment requested",
         extra={
@@ -145,7 +165,7 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
                 "company": request.company_name,
                 "ai_usage": request.ai_usage[:50],  # Truncate for logging
                 "processes_personal_data": request.processes_personal_data,
-                "client_ip": req.client.host if req.client else None,
+                "client_ip": client_ip,
             }
         },
     )
@@ -184,6 +204,35 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
                 }
             },
         )
+        
+        # PIPC Compliance: Log consent if provided
+        if request.consent_given is not None:
+            from app.audit_models import ConsentLog
+            from app.database import SessionLocal
+            
+            db = SessionLocal()
+            try:
+                consent_log = ConsentLog(
+                    user_identifier=request.email,
+                    ip_address=client_ip,
+                    consent_type="risk_assessment",
+                    consent_text="I consent to AI risk assessment processing (AI 위험 평가 처리에 동의합니다)",
+                    consent_method="api_submission",
+                    consent_given=request.consent_given,
+                    extra_metadata={
+                        "company_name": request.company_name,
+                        "locale": request.locale or "ko"
+                    },
+                    timestamp=datetime.utcnow()
+                )
+                db.add(consent_log)
+                db.commit()
+                logger.debug(f"Consent logged for {request.email}")
+            except Exception as log_error:
+                logger.warning(f"Failed to log consent: {str(log_error)}")
+                db.rollback()
+            finally:
+                db.close()
 
         return result
 
