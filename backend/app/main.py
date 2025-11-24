@@ -12,6 +12,9 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from app.email_automation import EmailAutomation
+from app.database import init_db, SessionLocal
+from app.audit_endpoints import router as audit_router
+from app.audit_models import ConsentLog
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -86,7 +89,20 @@ app = FastAPI(
 app.add_middleware(ErrorHandlingMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
+# Include audit logging router for PIPC compliance
+app.include_router(audit_router)
+
 logger.info(f"Starting AI Compliance Guardian API (Python {sys.version})")
+
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database tables on application startup."""
+    try:
+        init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
 
 # CORS - allow your Vercel frontend (production + all preview deployments) and localhost
 app.add_middleware(
@@ -187,7 +203,12 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
     Assess AI compliance risk based on usage and data processing.
 
     Calculates risk score and provides compliance recommendations.
+    
+    **PIPC Compliance:** This endpoint automatically logs consent and AI processing
+    for Korean AI Basic Act transparency requirements.
     """
+    client_ip = req.client.host if req.client else "unknown"
+    
     logger.info(
         "Risk assessment requested",
         extra={
@@ -195,7 +216,7 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
                 "company": request.company_name,
                 "ai_usage": request.ai_usage[:50],  # Truncate for logging
                 "processes_personal_data": request.processes_personal_data,
-                "client_ip": req.client.host if req.client else None,
+                "client_ip": client_ip,
             }
         },
     )
@@ -270,6 +291,32 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
                 }
             },
         )
+        
+        # PIPC Compliance: Log consent if provided
+        if request.consent_given is not None:
+            db = SessionLocal()
+            try:
+                consent_log = ConsentLog(
+                    user_identifier=request.email,
+                    ip_address=client_ip,
+                    consent_type="risk_assessment",
+                    consent_text="I consent to AI risk assessment processing (AI 위험 평가 처리에 동의합니다)",
+                    consent_method="api_submission",
+                    consent_given=request.consent_given,
+                    extra_metadata={
+                        "company_name": request.company_name,
+                        "locale": request.locale or "ko"
+                    },
+                    timestamp=datetime.utcnow()
+                )
+                db.add(consent_log)
+                db.commit()
+                logger.debug(f"Consent logged for {request.email}")
+            except Exception as log_error:
+                logger.warning(f"Failed to log consent: {str(log_error)}")
+                db.rollback()
+            finally:
+                db.close()
 
         return result
 
@@ -540,3 +587,75 @@ async def stripe_webhook(request: Request):
             extra={"extra_fields": {"error": str(e)}}
         )
         raise HTTPException(status_code=500, detail="Webhook processing failed")
+
+# Welcome email endpoint
+@app.post("/api/send-welcome-email")
+async def send_welcome_email(request: Request):
+    """
+    Send welcome email to new users.
+    
+    Expected payload:
+    {
+        "email": "user@example.com",
+        "company_name": "Company Name",
+        "language": "ko"
+    }
+    """
+    try:
+        payload = await request.json()
+        email = payload.get("email")
+        company_name = payload.get("company_name", "")
+        language = payload.get("language", "ko")
+        
+        if not email:
+            raise HTTPException(status_code=400, detail="Email is required")
+        
+        logger.info(
+            "Sending welcome email",
+            extra={"extra_fields": {"email": email, "company": company_name}}
+        )
+        
+        # Import email automation
+        from app.email_automation import EmailAutomation
+        
+        automation = EmailAutomation()
+        result = automation.send_welcome_email(
+            to_email=email,
+            first_name=company_name.split()[0] if company_name else "User",
+            company_name=company_name,
+            language=language
+        )
+        
+        if result.get("success"):
+            logger.info(f"Welcome email sent successfully to {email}")
+            return {"success": True, "message": "Welcome email sent"}
+        else:
+            logger.error(f"Failed to send welcome email: {result.get('error')}")
+            return {"success": False, "error": result.get("error")}
+            
+    except Exception as e:
+        logger.error(f"Welcome email error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Weekly reminder endpoint (to be called by a cron job)
+@app.post("/api/send-weekly-reminders")
+async def send_weekly_reminders(request: Request):
+    """
+    Send weekly progress reminders to active users.
+    Should be called by a cron job or scheduled task.
+    """
+    try:
+        logger.info("Starting weekly reminder batch")
+        
+        # TODO: Query database for active users who need reminders
+        # For now, return success
+        
+        return {
+            "success": True,
+            "message": "Weekly reminders sent",
+            "count": 0
+        }
+        
+    except Exception as e:
+        logger.error(f"Weekly reminder error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

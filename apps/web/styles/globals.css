@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Obangsaek Color System */
+    --color-baek: 248 249 250;
+    --color-cheong: 0 61 130;
+    --color-jeok: 205 46 58;
+    --color-heuk: 26 26 26;
+    --color-hwang: 247 181 0;
+  }
+  
+  body {
+    @apply bg-white;
+    color: rgb(26, 26, 26);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* Glassmorphism Effects */
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+
+  .glass-dark {
+    @apply bg-black/20 backdrop-blur-md border border-white/10;
+  }
+
+  /* Compliance Badge Styles */
+  .compliance-badge {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold;
+    @apply bg-white/80 backdrop-blur-sm border-2 shadow-lg;
+  }
+
+  .compliance-badge-msit {
+    @apply border-obangsaek-cheong text-obangsaek-cheong;
+  }
+
+  .compliance-badge-pipc {
+    @apply border-obangsaek-jeok text-obangsaek-jeok;
+  }
+
+  /* Korean Formal Tone - Typography */
+  .formal-korean {
+    @apply leading-relaxed;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  /* Countdown Timer Styles */
+  .countdown-digit {
+    @apply text-5xl md:text-7xl font-black bg-gradient-to-br from-obangsaek-cheong to-obangsaek-jeok bg-clip-text text-transparent;
+  }
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Korean Font Optimization */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
