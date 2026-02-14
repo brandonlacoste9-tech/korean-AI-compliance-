@@ -16,6 +16,7 @@ from app.email_automation import EmailAutomation
 from app.database import init_db, SessionLocal
 from app.audit_endpoints import router as audit_router
 from app.browser_automation import router as browser_router
+from app.classification_endpoints import router as classification_router
 from app.audit_models import ConsentLog
 
 # Load environment variables
@@ -95,6 +96,7 @@ app.add_middleware(RateLimitMiddleware, requests_per_minute=100)
 # Include audit logging router for PIPC compliance
 app.include_router(audit_router)
 app.include_router(browser_router)
+app.include_router(classification_router)
 
 logger.info(f"Starting AI Compliance Guardian API (Python {sys.version})")
 
