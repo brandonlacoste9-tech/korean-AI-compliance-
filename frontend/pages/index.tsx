@@ -20,8 +20,7 @@ export default function Home2026() {
 
   const handleCTAClick = () => {
     trackConversion('trial_started');
-    const element = document.getElementById('risk-assessment');
-    element?.scrollIntoView({ behavior: 'smooth' });
+    window.location.href = '/check';
   };
 
   return (
