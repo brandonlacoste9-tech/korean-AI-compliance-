@@ -8,8 +8,9 @@ import json
 
 
 class RiskLevel(str, Enum):
-    HIGH_IMPACT = "high_impact"
-    GENERATIVE = "generative"
+    HIGH_IMPACT = "high_impact"      # Affects life, safety, fundamental rights
+    HIGH_PERFORMANCE = "high_performance"  # ≥10²⁶ FLOPs
+    GENERATIVE = "generative"        # Produces synthetic content
     LOW_RISK = "low_risk"
 
 
@@ -36,12 +37,19 @@ HIGH_IMPACT_TRIGGERS = [
 # Generative AI triggers
 GENERATIVE_TRIGGERS = [
     "chatbot", "chat bot", "conversation", "gpt", "llm", "language model",
-    "image generation", "text generation", "content generation", "ai生成",
+    "image generation", "text generation", "content generation", "ai생성",
     "generative", "gpt-", "claude", "gemini", "midjourney", "stable diffusion",
     "text-to-image", "text-to-speech", "speech-to-text", "translation",
     "writing assistant", "code generation", "copilot", "ai writer",
     "content creation", "creative", "art generation", "music generation",
-    "video generation", "deepfake", "watermark",
+    "video generation", "deepfake", "watermark", "sora", "runway",
+]
+
+# High-performance AI triggers (≥10²⁶ FLOPs)
+HIGH_PERFORMANCE_TRIGGERS = [
+    "flops", "floating point", "compute", "training cluster",
+    "gpu cluster", "a100", "h100", "h800", "training large",
+    "foundation model", "pretraining", "distributed training",
 ]
 
 # Compliance requirements by risk level
@@ -54,6 +62,13 @@ REQUIREMENTS = {
         "Documentation & explainability",
         "Domestic representative (if foreign)",
         "PIPC audit logging",
+    ],
+    RiskLevel.HIGH_PERFORMANCE: [
+        "Risk management plan",
+        "Lifecycle monitoring",
+        "Report to MSIT",
+        "User notification",
+        "Safety measures documentation",
     ],
     RiskLevel.GENERATIVE: [
         "User notification (AI disclosure)",
@@ -87,10 +102,16 @@ def classify_ai_system(description: str, api_endpoints: List[str] = None) -> Dic
     # Check for generative AI triggers
     generative_score = sum(1 for trigger in GENERATIVE_TRIGGERS if trigger in desc_lower)
     
-    # Determine classification
+    # Check for high-performance AI triggers
+    high_perf_score = sum(1 for trigger in HIGH_PERFORMANCE_TRIGGERS if trigger in desc_lower)
+    
+    # Determine classification (priority: High-Impact > High-Performance > Generative > Low-Risk)
     if high_impact_score >= 2:
         risk_level = RiskLevel.HIGH_IMPACT
         confidence = min(0.95, 0.6 + (high_impact_score * 0.1))
+    elif high_perf_score >= 1:
+        risk_level = RiskLevel.HIGH_PERFORMANCE
+        confidence = min(0.90, 0.6 + (high_perf_score * 0.15))
     elif generative_score >= 1:
         risk_level = RiskLevel.GENERATIVE
         confidence = min(0.90, 0.5 + (generative_score * 0.15))
@@ -128,6 +149,13 @@ def _get_next_steps(risk_level: RiskLevel) -> List[str]:
             "4. Set up PIPC audit logging",
             "5. Appoint domestic representative (if foreign)",
             "6. Notify users of AI usage",
+        ],
+        RiskLevel.HIGH_PERFORMANCE: [
+            "1. Create risk management plan",
+            "2. Implement lifecycle monitoring",
+            "3. Report to MSIT",
+            "4. Document safety measures",
+            "5. Set up user notification system",
         ],
         RiskLevel.GENERATIVE: [
             "1. Add AI disclosure to user interface",
