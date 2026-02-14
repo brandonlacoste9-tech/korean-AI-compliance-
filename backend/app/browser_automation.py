@@ -1,6 +1,6 @@
 """
-Browser automation for compliance checking.
-Uses Playwright to audit client websites for AI disclosure requirements.
+Browser automation for compliance checking using browser-use AI agent.
+Tests client websites for Korean AI Act compliance.
 """
 import os
 import asyncio
@@ -20,34 +20,70 @@ class ComplianceCheckRequest(BaseModel):
     check_ai_disclosure: bool = True
     check_contact_info: bool = True
     check_privacy_policy: bool = True
-    screenshot: bool = False
+    take_screenshot: bool = True
 
 
 class ComplianceCheckResult(BaseModel):
     url: str
     timestamp: str
     checks: Dict[str, Any]
-    screenshot_url: Optional[str] = None
+    screenshot_path: Optional[str] = None
+    agent_actions: List[str] = []
     errors: List[str] = []
 
 
-# Compliance checks to perform
-AI_DISCLOSURE_KEYWORDS = [
-    "ai-generated",
-    "ai generated",
-    "artificial intelligence",
-    "machine learning",
-    "powered by ai",
-    "ai가 생성",
-    "AI 생성",
-]
+# Compliance checks that the AI agent will perform
+COMPLIANCE_TASK = """
+You are a Korean AI Act compliance auditor. Please check the website for:
 
-CONTACT_REQUIREMENTS = [
-    "email",
-    "phone",
-    "contact",
-    "문의",
-]
+1. AI Disclosure: Look for any mentions of AI, artificial intelligence, machine learning, "AI-generated", "AI가 생성", etc. Check headers, footers, and content.
+
+2. Contact Information: Look for email, phone number, or contact form. Check for "문의", "Contact", "이메일", "전화".
+
+3. Privacy Policy: Look for privacy policy link. Check for "privacy", "개인정보", "개인정보 처리방침".
+
+4. Korean Language: Check if the site has Korean language option or Korean content.
+
+Report your findings in JSON format:
+{
+    "ai_disclosure": {"found": true/false, "details": "what you found"},
+    "contact_info": {"found": true/false, "details": "what you found"},
+    "privacy_policy": {"found": true/false, "details": "what you found"},
+    "korean_content": {"found": true/false, "details": "what you found"}
+}
+"""
+
+
+async def run_browser_use_agent(url: str, task: str) -> Dict[str, Any]:
+    """Run browser-use agent to check compliance."""
+    try:
+        from browser_use import Agent
+        from langchain_openai import ChatOpenAI
+        
+        # Initialize the agent with OpenAI
+        llm = ChatOpenAI(model="gpt-4o")
+        
+        agent = Agent(
+            task=task,
+            llm=llm,
+        )
+        
+        # Run the agent
+        result = await agent.run()
+        
+        return {
+            "success": True,
+            "result": result,
+            "actions": agent.history if hasattr(agent, 'history') else []
+        }
+        
+    except Exception as e:
+        logger.error(f"browser-use agent error: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "actions": []
+        }
 
 
 @router.post("/compliance/check", response_model=ComplianceCheckResult)
@@ -58,180 +94,124 @@ async def check_website_compliance(
     """
     웹사이트 준수 검사 (Website compliance check).
     
-    Checks a website for Korean AI Act compliance requirements:
+    Uses AI agent (browser-use) to audit website for Korean AI Act compliance:
     - AI disclosure presence
-    - Contact information
-    - Privacy policy link
-    
-    Uses browser automation to audit the live site.
+    - Contact information  
+    - Privacy policy
+    - Korean language support
     """
     try:
-        # Import playwright here to make it optional
-        from playwright.async_api import async_playwright
+        # Build the task for the agent
+        task = f"""{COMPLIANCE_TASK}
+
+Please visit {request.url} and check for these compliance requirements.
+Take a screenshot if possible.
+"""
         
-        results = {
-            "ai_disclosure": {"found": False, "details": None},
-            "contact_info": {"found": False, "details": None},
-            "privacy_policy": {"found": False, "details": None},
-        }
-        errors = []
-        screenshot_base64 = None
+        logger.info(f"Starting browser-use compliance check for: {request.url}")
         
-        async with async_playwright() as p:
-            # Launch browser (headless)
-            browser = await p.chromium.launch(headless=True)
-            page = await browser.new_page()
-            
-            try:
-                # Navigate to URL
-                logger.info(f"Checking compliance for: {request.url}")
-                response = await page.goto(request.url, timeout=30000)
-                
-                if response is None or response.status >= 400:
-                    errors.append(f"Failed to load page: HTTP {response.status if response else 'unknown'}")
-                else:
-                    # Get page content
-                    content = await page.content()
-                    text_content = await page.evaluate("document.body.innerText")
-                    
-                    # Check AI disclosure
-                    if request.check_ai_disclosure:
-                        for keyword in AI_DISCLOSURE_KEYWORDS:
-                            if keyword.lower() in text_content.lower():
-                                results["ai_disclosure"] = {
-                                    "found": True,
-                                    "keyword_found": keyword,
-                                    "compliant": True
-                                }
-                                break
-                        else:
-                            results["ai_disclosure"] = {
-                                "found": False,
-                                "compliant": False,
-                                "warning": "No AI disclosure found - may violate Korean AI Act"
-                            }
-                    
-                    # Check contact info
-                    if request.check_contact_info:
-                        for keyword in CONTACT_REQUIREMENTS:
-                            if keyword.lower() in text_content.lower():
-                                results["contact_info"] = {
-                                    "found": True,
-                                    "keyword_found": keyword,
-                                }
-                                break
-                        else:
-                            results["contact_info"] = {
-                                "found": False,
-                                "warning": "No contact information found"
-                            }
-                    
-                    # Check privacy policy
-                    if request.check_privacy_policy:
-                        privacy_links = await page.query_selector_all('a[href*="privacy"], a[href*="Privacy"], a[href*="개인정보"]')
-                        if privacy_links:
-                            results["privacy_policy"] = {
-                                "found": True,
-                                "count": len(privacy_links),
-                            }
-                        else:
-                            results["privacy_policy"] = {
-                                "found": False,
-                                "warning": "No privacy policy link found"
-                            }
-                    
-                    # Take screenshot if requested
-                    if request.screenshot:
-                        screenshot = await page.screenshot()
-                        import base64
-                        screenshot_base64 = base64.b64encode(screenshot).decode()
-                
-            except Exception as e:
-                errors.append(f"Browser error: {str(e)}")
-                logger.error(f"Compliance check error: {e}")
-            finally:
-                await browser.close()
+        # Run the agent
+        result = await run_browser_use_agent(request.url, task)
         
-        # Prepare response
-        result = ComplianceCheckResult(
-            url=request.url,
-            timestamp=datetime.now().isoformat(),
-            checks=results,
-            screenshot_url=screenshot_base64,  # In production, upload to cloud storage
-            errors=errors
-        )
+        if result["success"]:
+            return ComplianceCheckResult(
+                url=request.url,
+                timestamp=datetime.now().isoformat(),
+                checks=result.get("result", {}),
+                agent_actions=result.get("actions", []),
+                errors=[]
+            )
+        else:
+            return ComplianceCheckResult(
+                url=request.url,
+                timestamp=datetime.now().isoformat(),
+                checks={},
+                agent_actions=result.get("actions", []),
+                errors=[result.get("error", "Unknown error")]
+            )
         
-        logger.info(
-            f"Compliance check completed for {request.url}",
-            extra={"extra_fields": {"results": results, "errors": errors}}
-        )
-        
-        return result
-        
-    except ImportError:
+    except ImportError as e:
         raise HTTPException(
             status_code=500,
-            detail="Browser automation not available. Install: pip install playwright && playwright install chromium"
+            detail=f"browser-use not installed: {str(e)}. Run: uv add browser-use"
         )
     except Exception as e:
         logger.error(f"Compliance check failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/compliance/templates")
-async def get_compliance_templates(
+@router.post("/compliance/check-simple")
+async def check_website_simple(
+    url: str,
     api_key: str = Depends(verify_api_key)
 ) -> Dict[str, Any]:
     """
-    Get compliance disclosure templates.
+    Simple compliance check using direct browser access.
     
-    Returns HTML/JS snippets that can be added to client websites
-    for Korean AI Act compliance.
+    Faster than AI agent but less thorough.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+        
+        results = {
+            "ai_disclosure": {"found": False},
+            "contact_info": {"found": False},
+            "privacy_policy": {"found": False}
+        }
+        
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(url, timeout=30000)
+            
+            text = page.content().lower()
+            
+            # Check AI keywords
+            ai_keywords = ["ai", "artificial intelligence", "machine learning", "ai-generated"]
+            results["ai_disclosure"]["found"] = any(k in text for k in ai_keywords)
+            
+            # Check contact
+            contact_keywords = ["contact", "email", "phone", "문의", "이메일"]
+            results["contact_info"]["found"] = any(k in text for k in contact_keywords)
+            
+            # Check privacy
+            privacy_keywords = ["privacy", "개인정보", "개인정보 처리방침"]
+            results["privacy_policy"]["found"] = any(k in text for k in privacy_keywords)
+            
+            browser.close()
+        
+        return {
+            "url": url,
+            "timestamp": datetime.now().isoformat(),
+            "results": results
+        }
+        
+    except Exception as e:
+        return {
+            "url": url,
+            "error": str(e),
+            "results": None
+        }
+
+
+@router.get("/compliance/templates")
+async def get_compliance_templates() -> Dict[str, Any]:
+    """
+    Get compliance disclosure templates.
     """
     return {
         "ai_disclosure_banner": {
-            "html": """<div class="ai-disclosure-banner" style="background:#f5f5f5;padding:10px;text-align:center;font-size:14px;">
+            "html": """<div class="ai-disclosure" style="background:#f5f5f5;padding:10px;text-align:center;">
                 이 사이트는 AI를 사용하여 콘텐츠를 생성합니다. / This site uses AI to generate content.
             </div>""",
-            "description": "AI disclosure banner for website footer or header"
+            "description": "AI disclosure banner"
         },
-        "ai_disclosure_badge": {
-            "html": """<span class="ai-badge" style="display:inline-flex;align-items:center;gap:5px;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2"/></svg>
-                AI-Powered
-            </span>""",
-            "description": "AI badge for product pages"
+        "ai_badge": {
+            "html": """<span class="ai-badge">🤖 AI-Powered</span>""",
+            "description": "AI badge"
         },
-        "contact_section": {
-            "html": """<section id="contact" style="padding:40px 20px;">
-                <h2>문의하기 / Contact Us</h2>
-                <p>이메일: compliance@yourcompany.com</p>
-                <p>전화: +82-2-XXXX-XXXX</p>
-            </section>""",
-            "description": "Contact section template with Korean/English"
-        },
-        "privacy_policy_link": {
-            "html": """<a href="/privacy-policy">개인정보 처리방침 / Privacy Policy</a>""",
-            "description": "Privacy policy link template"
+        "privacy_link": {
+            "html": """<a href="/privacy">개인정보 처리방침 / Privacy Policy</a>""",
+            "description": "Privacy policy link"
         }
-    }
-
-
-@router.post("/compliance/report")
-async def generate_compliance_report(
-    urls: List[str],
-    api_key: str = Depends(verify_api_key)
-) -> Dict[str, Any]:
-    """
-    Generate bulk compliance report for multiple URLs.
-    
-    Audits multiple websites and returns aggregated compliance report.
-    """
-    # This would call the check endpoint for each URL
-    # In production, this could be a background job
-    return {
-        "status": "queued",
-        "urls_count": len(urls),
-        "report_id": f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-        "message": "Bulk report generation started. Check back later for results."
     }

@@ -9,4 +9,4 @@ python-dotenv==1.0.1
 psycopg2-binary==2.9.10
 cryptography==44.0.0
 slowapi==0.1.9
-playwright==1.48.0
+browser-use==0.1.20
