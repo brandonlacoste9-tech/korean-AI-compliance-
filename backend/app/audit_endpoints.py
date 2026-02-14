@@ -25,6 +25,7 @@ from app.audit_schemas import (
     ExportResponse
 )
 from app.logging_config import get_logger
+from app.security import verify_api_key
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["PIPC Compliance"])
@@ -90,7 +91,7 @@ async def create_consent_log(
         )
 
 
-@router.get("/consent", response_model=List[ConsentLogResponse])
+@router.get("/consent", response_model=List[ConsentLogResponse], dependencies=[Depends(verify_api_key)])
 async def get_consent_logs(
     user_identifier: Optional[str] = None,
     consent_type: Optional[str] = None,
@@ -204,7 +205,7 @@ async def create_audit_log(
         )
 
 
-@router.get("/audit-logs", response_model=List[AuditLogResponse])
+@router.get("/audit-logs", response_model=List[AuditLogResponse], dependencies=[Depends(verify_api_key)])
 async def get_audit_logs(
     action: Optional[str] = None,
     actor: Optional[str] = None,
@@ -318,7 +319,7 @@ async def create_ai_processing_log(
         )
 
 
-@router.get("/audit-logs/export")
+@router.get("/audit-logs/export", dependencies=[Depends(verify_api_key)])
 async def export_audit_logs_csv(
     log_type: str = "audit",  # "audit", "consent", or "ai_processing"
     start_date: Optional[datetime] = None,
@@ -469,3 +470,187 @@ async def export_audit_logs_csv(
             status_code=500,
             detail="감사 로그 내보내기에 실패했습니다 (Failed to export audit logs)"
         )
+
+
+# ============================================================================
+# Data Portability Endpoint (GDPR/PIPC Article 20 equivalent)
+# ============================================================================
+# Users have the right to request a copy of all their personal data
+
+@router.get("/user-data/{user_identifier}", dependencies=[Depends(verify_api_key)])
+async def get_user_data(
+    user_identifier: str,
+    db: Session = Depends(get_db)
+):
+    """
+    사용자 데이터 내보내기 (Data portability - export user data).
+    
+    Allows users to request a copy of all their personal data per
+    GDPR-style data portability rights and PIPC requirements.
+    
+    **Access:** User their own data, or admin with API key.
+    Returns all consent logs, audit logs, and AI processing logs for the user.
+    """
+    try:
+        # Get consent logs for user
+        consent_logs = db.query(ConsentLog).filter(
+            ConsentLog.user_identifier == user_identifier
+        ).all()
+        
+        # Get audit logs where user is actor
+        audit_logs = db.query(AuditLog).filter(
+            AuditLog.actor == user_identifier
+        ).all()
+        
+        # Get AI processing logs
+        ai_logs = db.query(AIProcessingLog).filter(
+            AIProcessingLog.user_identifier == user_identifier
+        ).all()
+        
+        # Compile response
+        export_data = {
+            "user_identifier": user_identifier,
+            "export_date": datetime.now(timezone.utc).isoformat(),
+            "data_categories": {
+                "consent_logs": [
+                    {
+                        "id": log.id,
+                        "consent_type": log.consent_type,
+                        "consent_given": log.consent_given,
+                        "consent_method": log.consent_method,
+                        "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+                    }
+                    for log in consent_logs
+                ],
+                "audit_logs": [
+                    {
+                        "id": log.id,
+                        "action": log.action,
+                        "resource_type": log.resource_type,
+                        "result": log.result,
+                        "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+                    }
+                    for log in audit_logs
+                ],
+                "ai_processing_logs": [
+                    {
+                        "id": log.id,
+                        "model_name": log.model_name,
+                        "model_version": log.model_version,
+                        "output_decision": log.output_decision,
+                        "confidence_score": log.confidence_score,
+                        "human_reviewed": log.human_reviewed,
+                        "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+                    }
+                    for log in ai_logs
+                ]
+            },
+            "summary": {
+                "total_consent_records": len(consent_logs),
+                "total_audit_records": len(audit_logs),
+                "total_ai_records": len(ai_logs)
+            }
+        }
+        
+        logger.info(
+            f"사용자 데이터 내보내기 완료 (User data exported): {user_identifier}",
+            extra={
+                "extra_fields": {
+                    "user": user_identifier,
+                    "consent_count": len(consent_logs),
+                    "audit_count": len(audit_logs),
+                    "ai_count": len(ai_logs)
+                }
+            }
+        )
+        
+        return export_data
+        
+    except Exception as e:
+        logger.error(f"사용자 데이터 내보내기 실패 (User data export failed): {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="사용자 데이터 내보내기에 실패했습니다 (Failed to export user data)"
+        )
+
+
+# ============================================================================
+# Data Retention Policy - 3 Year Automatic Purge
+# ============================================================================
+
+@router.delete("/retention/purge", dependencies=[Depends(verify_api_key)])
+async def purge_old_records(
+    dry_run: bool = True,
+    db: Session = Depends(get_db)
+):
+    """
+    개인 데이터 삭제 (Data retention purge).
+    
+    Deletes records older than 3 years per PIPC requirements.
+    Set dry_run=false to actually delete records.
+    
+    **Warning:** This is an admin-only endpoint.
+    """
+    from datetime import timedelta
+    
+    retention_period = timedelta(days=3 * 365)  # 3 years
+    cutoff_date = datetime.now(timezone.utc) - retention_period
+    
+    # Count records to delete (dry run)
+    consent_to_delete = db.query(ConsentLog).filter(
+        ConsentLog.timestamp < cutoff_date
+    ).count()
+    
+    audit_to_delete = db.query(AuditLog).filter(
+        AuditLog.timestamp < cutoff_date
+    ).count()
+    
+    ai_to_delete = db.query(AIProcessingLog).filter(
+        AIProcessingLog.timestamp < cutoff_date
+    ).count()
+    
+    result = {
+        "dry_run": dry_run,
+        "cutoff_date": cutoff_date.isoformat(),
+        "records_pending_deletion": {
+            "consent_logs": consent_to_delete,
+            "audit_logs": audit_to_delete,
+            "ai_processing_logs": ai_to_delete,
+            "total": consent_to_delete + audit_to_delete + ai_to_delete
+        }
+    }
+    
+    if not dry_run:
+        # Actually delete the records
+        deleted_consent = db.query(ConsentLog).filter(
+            ConsentLog.timestamp < cutoff_date
+        ).delete()
+        
+        deleted_audit = db.query(AuditLog).filter(
+            AuditLog.timestamp < cutoff_date
+        ).delete()
+        
+        deleted_ai = db.query(AIProcessingLog).filter(
+            AIProcessingLog.timestamp < cutoff_date
+        ).delete()
+        
+        db.commit()
+        
+        result["deleted"] = {
+            "consent_logs": deleted_consent,
+            "audit_logs": deleted_audit,
+            "ai_processing_logs": deleted_ai,
+            "total": deleted_consent + deleted_audit + deleted_ai
+        }
+        
+        logger.info(
+            "데이터 보존 기간 만료 삭제 완료 (Retention purge completed)",
+            extra={"extra_fields": result["deleted"]}
+        )
+    else:
+        logger.info(
+            "데이터 보존 기간 만료 dry run 완료 (Retention dry run completed)",
+            extra={"extra_fields": result["records_pending_deletion"]}
+        )
+    
+    return result

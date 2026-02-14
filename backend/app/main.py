@@ -8,12 +8,14 @@ from datetime import datetime
 import stripe
 from app.logging_config import setup_logging, get_logger
 from app.middleware import RequestLoggingMiddleware, ErrorHandlingMiddleware
+from app.rate_limit import RateLimitMiddleware
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from app.email_automation import EmailAutomation
 from app.database import init_db, SessionLocal
 from app.audit_endpoints import router as audit_router
+from app.browser_automation import router as browser_router
 from app.audit_models import ConsentLog
 
 # Load environment variables
@@ -88,9 +90,11 @@ app = FastAPI(
 # Add middleware (order matters - they execute in reverse order of addition)
 app.add_middleware(ErrorHandlingMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(RateLimitMiddleware, requests_per_minute=100)
 
 # Include audit logging router for PIPC compliance
 app.include_router(audit_router)
+app.include_router(browser_router)
 
 logger.info(f"Starting AI Compliance Guardian API (Python {sys.version})")
 
