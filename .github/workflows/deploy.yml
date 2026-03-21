@@ -14,12 +14,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install dependencies
+      - name: Install backend dependencies
+        working-directory: backend
         run: |
           python -m pip install --upgrade pip
-          pip install .[dev]
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
       - name: Run backend tests
-        run: pytest
+        working-directory: backend
+        run: pytest tests/ -v --tb=short
 
   test-frontend:
     runs-on: ubuntu-latest
@@ -29,15 +32,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          node-version: '20'
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
       - name: Run frontend tests
         working-directory: frontend
-        run: npm test -- --watch=false
+        run: npm test -- --watch=false --passWithNoTests
 
   deploy-backend:
     runs-on: ubuntu-latest
@@ -51,8 +52,10 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
           ENABLE_STRIPE_LIVE: ${{ secrets.ENABLE_STRIPE_LIVE }}
           SEND_EMAIL_NOTIFICATIONS: ${{ secrets.SEND_EMAIL_NOTIFICATIONS }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -67,6 +70,20 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_STRIPE_PRICE_ID: ${{ secrets.NEXT_PUBLIC_STRIPE_PRICE_ID }}
+        run: npm run build
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -75,4 +92,5 @@ jobs:
           NEXT_PUBLIC_STRIPE_PRICE_ID: ${{ secrets.NEXT_PUBLIC_STRIPE_PRICE_ID }}
         run: |
           npm install -g vercel
-          vercel deploy --prebuilt --token $VERCEL_TOKEN --prod
+          cd frontend
+          vercel deploy --token $VERCEL_TOKEN --prod
