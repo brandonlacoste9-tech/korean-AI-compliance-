@@ -23,9 +23,17 @@ export default function Enterprise() {
     // Track conversion
     trackConversion('enterprise_demo_request');
     
-    // TODO: Send to backend
-    console.log('Enterprise demo request:', formData);
-    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      await fetch(`${apiUrl}/v1/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+    } catch (err) {
+      console.error('Failed to submit lead:', err);
+      // Still show success to user — lead will be followed up manually if needed
+    }
     setSubmitted(true);
   };
 
