@@ -42,7 +42,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
         return;
       }
       
-      const response = await fetch(`${apiUrl}/api/stripe/create-checkout`, {
+      const response = await fetch(`${apiUrl}/api/stripe/create-checkout-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,12 +54,11 @@ const PricingCard: React.FC<PricingCardProps> = ({
       });
 
       const session = await response.json();
-      const result = await stripe.redirectToCheckout({
-        sessionId: session.id,
-      });
-
-      if (result.error) {
-        console.error(result.error.message);
+      // Redirect directly to Stripe-hosted checkout URL (correct approach)
+      if (session.checkout_url) {
+        window.location.href = session.checkout_url;
+      } else {
+        console.error('No checkout URL returned from backend', session);
       }
     } catch (error) {
       console.error('Stripe checkout error:', error);

@@ -98,15 +98,15 @@ export default function Pricing() {
   const handleCheckout = async (tier: PricingTier) => {
     if (tier.id === 'enterprise') {
       // Scroll to contact form
-      window.location.href = '/#contact';
+      window.location.href = '/enterprise';
       return;
     }
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-      // Call backend to create Stripe checkout session
-      const response = await axios.post(`${apiUrl}/api/stripe/create-checkout`, {
+      // Call backend to create Stripe checkout session — correct endpoint
+      const response = await axios.post(`${apiUrl}/api/stripe/create-checkout-session`, {
         plan: tier.id,
         currency: 'krw'  // Default to KRW, can be made dynamic
       });

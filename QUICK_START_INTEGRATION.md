@@ -29,7 +29,7 @@ Value: https://korean-ai-compliance.onrender.com
 
 # Variable 2: Stripe Publishable Key
 Name:  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-Value: pk_test_51QRGy3BPtBjCLqGrqx... (your Stripe test key)
+Value: pk_test_YOUR_STRIPE_PUBLISHABLE_KEY (get from Stripe Dashboard > Developers > API Keys)
 ```
 
 5. Select **All environments** (Production, Preview, Development)
