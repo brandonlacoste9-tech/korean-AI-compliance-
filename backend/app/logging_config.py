@@ -1,9 +1,10 @@
 """Logging configuration for the AI Compliance Guardian API."""
+
+import json
 import logging
 import sys
-from typing import Any, Dict
-import json
 from datetime import datetime
+from typing import Any, Dict
 
 
 class JSONFormatter(logging.Formatter):

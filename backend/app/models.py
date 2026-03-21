@@ -1,4 +1,5 @@
 """Data models and risk categorisation utilities for the compliance API."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -216,7 +217,9 @@ def calculate_enhanced_risk_score(
     }
 
 
-def record_audit_event(action: str, *, user_ip: str, consent_obtained: bool, metadata: Mapping[str, object]) -> None:
+def record_audit_event(
+    action: str, *, user_ip: str, consent_obtained: bool, metadata: Mapping[str, object]
+) -> None:
     """Persist an audit event for PIPC compliance requirements."""
 
     AUDIT_LOG.append(
