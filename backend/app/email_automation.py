@@ -6,7 +6,7 @@ Handles welcome sequences, drip campaigns, and PDF delivery
 import logging
 import os
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import resend
 from jinja2 import Environment, FileSystemLoader
@@ -56,7 +56,7 @@ class EmailAutomation:
 
             # Subject lines
             subjects = {
-                "ko": f"{first_name}님, AI 컴플라이언스 체크리스트를 보내드립니다 📋",
+                "ko": f"{first_name}님, AI 컴플라이언스 체크리스트를 보내드립니다 📋",  # noqa: E501
                 "en": f"{first_name}, Your Korean AI Compliance Checklist 📋",
             }
 
@@ -133,7 +133,7 @@ class EmailAutomation:
                 "90-day-compliance": {
                     1: {
                         "template": "sequence_90day_email1.html",
-                        "subject_ko": f"{first_name}님, 체크리스트 다운로드 감사합니다 📋",
+                        "subject_ko": f"{first_name}님, 체크리스트 다운로드 감사합니다 📋",  # noqa: E501
                         "subject_en": f"{first_name}, Your Checklist - Let's Get Started 📋",
                         "delay_days": 0,
                     },
@@ -145,7 +145,7 @@ class EmailAutomation:
                     },
                     3: {
                         "template": "sequence_90day_email3.html",
-                        "subject_ko": "⚠️ ₩30M 벌금 주의: 국내 대리인이 있으신가요?",
+                        "subject_ko": "⚠️ ₩30M 벌금 주의: 국내 대리인이 있으신가요?",  # noqa: E501
                         "subject_en": "⚠️ ₩30M Fine Alert: Do You Have a Local Rep?",
                         "delay_days": 7,
                     },
@@ -163,8 +163,10 @@ class EmailAutomation:
                     },
                     6: {
                         "template": "sequence_90day_email6.html",
-                        "subject_ko": f"⏰ {self._days_until_enforcement()}일 남음 - 진행 상황은?",
-                        "subject_en": f"⏰ {self._days_until_enforcement()} Days Left - Your Progress?",
+                        "subject_ko": f"⏰ {self._days_until_enforcement()}일 남음 - 진행 상황은?",  # noqa: E501
+                        "subject_en": (   # noqa: E501
+                            f"⏰ {self._days_until_enforcement()} Days Left - Your Progress?"
+                        ),
                         "delay_days": 28,
                     },
                     7: {
@@ -294,7 +296,7 @@ class EmailAutomation:
             )
 
             subjects = {
-                "ko": f"{first_name}님, AI Compliance Guardian에 오신 것을 환영합니다! 🎉",
+                "ko": f"{first_name}님, AI Compliance Guardian에 오신 것을 환영합니다! 🎉",  # noqa: E501
                 "en": f"Welcome to AI Compliance Guardian, {first_name}! 🎉",
             }
 

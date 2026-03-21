@@ -6,7 +6,6 @@ import pytest
 
 from ..app.models import (
     AUDIT_LOG,
-    HIGH_RISK_CATEGORIES,
     RiskAssessmentRequest,
     calculate_enhanced_risk_score,
 )

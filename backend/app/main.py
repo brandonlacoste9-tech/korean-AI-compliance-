@@ -2,7 +2,7 @@ import json
 import os
 import sys
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import stripe
 from app.email_automation import EmailAutomation
