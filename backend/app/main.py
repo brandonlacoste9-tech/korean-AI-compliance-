@@ -1,20 +1,22 @@
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, Dict, Any, List
+import json
 import os
 import sys
-import json
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
 import stripe
-from sqlalchemy import create_engine, Column, String, Boolean, Integer, Float, DateTime, Text
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
-from app.logging_config import setup_logging, get_logger
-from app.middleware import RequestLoggingMiddleware, ErrorHandlingMiddleware
 from app.email_automation import EmailAutomation
+from app.logging_config import get_logger, setup_logging
+from app.middleware import ErrorHandlingMiddleware, RequestLoggingMiddleware
 
 # Load environment variables
 from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text, create_engine
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
+
 load_dotenv()
 
 # Initialize Stripe
@@ -32,8 +34,10 @@ logger = get_logger(__name__)
 DATABASE_URL = os.getenv("DATABASE_URL")
 Base = declarative_base()
 
+
 class UserDB(Base):
     """Persistent user record — created on first checkout or assessment."""
+
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
@@ -42,10 +46,16 @@ class UserDB(Base):
     plan = Column(String(50), nullable=True)
     locale = Column(String(10), default="ko")
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
 
 class SubscriptionDB(Base):
     """Stripe subscription record — updated by webhook events."""
+
     __tablename__ = "subscriptions"
     id = Column(Integer, primary_key=True, autoincrement=True)
     stripe_session_id = Column(String(255), unique=True, nullable=False, index=True)
@@ -57,8 +67,10 @@ class SubscriptionDB(Base):
     status = Column(String(50), default="active")
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
+
 class RiskAssessmentDB(Base):
     """Persisted risk assessment results for audit trail."""
+
     __tablename__ = "risk_assessments"
     id = Column(Integer, primary_key=True, autoincrement=True)
     company_name = Column(String(255), nullable=False)
@@ -70,8 +82,10 @@ class RiskAssessmentDB(Base):
     client_ip = Column(String(64), nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
+
 class AuditLogDB(Base):
     """PIPC-compliant persistent audit log — 3-year retention required."""
+
     __tablename__ = "audit_logs"
     id = Column(Integer, primary_key=True, autoincrement=True)
     action = Column(String(100), nullable=False)
@@ -81,8 +95,10 @@ class AuditLogDB(Base):
     metadata_json = Column(Text, default="{}")
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
+
 class LeadDB(Base):
     """Enterprise lead capture — stored for sales follow-up."""
+
     __tablename__ = "leads"
     id = Column(Integer, primary_key=True, autoincrement=True)
     company_name = Column(String(255), nullable=False)
@@ -93,6 +109,7 @@ class LeadDB(Base):
     ai_systems = Column(Text, nullable=True)
     urgency = Column(String(50), nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
 
 # Create engine and session factory — gracefully skip if DATABASE_URL is not set
 engine = None
@@ -108,13 +125,17 @@ if DATABASE_URL:
 else:
     logger.warning("DATABASE_URL not set. Audit logs and subscriptions will not be persisted.")
 
+
 def get_db() -> Optional[Session]:
     """Return a database session, or None if database is unavailable."""
     if SessionLocal is None:
         return None
     return SessionLocal()
 
-def record_audit_event_db(action: str, *, user_ip: str, user_email: str = "", consent_obtained: bool, metadata: dict) -> None:
+
+def record_audit_event_db(
+    action: str, *, user_ip: str, user_email: str = "", consent_obtained: bool, metadata: dict
+) -> None:
     """Persist an audit event to the database for PIPC compliance (3-year retention)."""
     db = get_db()
     if db is None:
@@ -136,6 +157,7 @@ def record_audit_event_db(action: str, *, user_ip: str, user_email: str = "", co
     finally:
         db.close()
 
+
 # ─── FastAPI App ───────────────────────────────────────────────────────────────
 
 # Initialize FastAPI app
@@ -143,7 +165,7 @@ app = FastAPI(
     title="AI Compliance Guardian API",
     version="1.0.0",
     description="Korean AI Compliance Risk Assessment API",
-    redirect_slashes=False  # Prevent POST → GET conversion on trailing slash redirects
+    redirect_slashes=False,  # Prevent POST → GET conversion on trailing slash redirects
 )
 
 # Add middleware (order matters - they execute in reverse order of addition)
@@ -170,8 +192,10 @@ app.add_middleware(
 
 # ─── Request Models ────────────────────────────────────────────────────────────
 
+
 class AssessmentRequest(BaseModel):
     """Risk assessment request with field aliases for frontend compatibility."""
+
     model_config = ConfigDict(populate_by_name=True)
 
     company_name: str = Field(..., alias="companyName")
@@ -182,12 +206,15 @@ class AssessmentRequest(BaseModel):
     consent_given: Optional[bool] = Field(default=None, alias="consentGiven")
     locale: Optional[str] = None
 
+
 class CheckoutRequest(BaseModel):
     plan: str
     currency: str = "krw"
 
+
 class LeadRequest(BaseModel):
     """Enterprise lead capture request."""
+
     model_config = ConfigDict(populate_by_name=True)
 
     company_name: str = Field(..., alias="companyName")
@@ -198,10 +225,12 @@ class LeadRequest(BaseModel):
     ai_systems: Optional[str] = Field(default=None, alias="aiSystems")
     urgency: Optional[str] = None
 
+
 # Startup time for uptime calculation
 startup_time = datetime.utcnow()
 
 # ─── Health Endpoints ──────────────────────────────────────────────────────────
+
 
 @app.get("/")
 @app.get("/health")
@@ -218,20 +247,18 @@ async def health_check(request: Request) -> Dict[str, Any]:
         "environment": os.getenv("ENVIRONMENT", "development"),
         "python_version": sys.version.split()[0],
         "database": "connected" if engine is not None else "not configured",
-        "endpoints": {
-            "risk_assessment": "/v1/assessments",
-            "health": "/health",
-            "docs": "/docs"
-        }
+        "endpoints": {"risk_assessment": "/v1/assessments", "health": "/health", "docs": "/docs"},
     }
     logger.debug("Health check requested", extra={"extra_fields": {"uptime": uptime_seconds}})
     return health_data
+
 
 @app.get("/readiness")
 async def readiness_check() -> Dict[str, str]:
     """Kubernetes-style readiness probe."""
     logger.debug("Readiness check requested")
     return {"status": "ready"}
+
 
 @app.get("/version")
 async def version_info() -> Dict[str, Any]:
@@ -241,10 +268,12 @@ async def version_info() -> Dict[str, Any]:
         "service": "AI Compliance Guardian API",
         "python_version": sys.version.split()[0],
         "environment": os.getenv("ENVIRONMENT", "development"),
-        "build_time": startup_time.isoformat() + "Z"
+        "build_time": startup_time.isoformat() + "Z",
     }
 
+
 # ─── Risk Assessment ───────────────────────────────────────────────────────────
+
 
 @app.post("/v1/assessments")
 @app.post("/api/risk-assessment")
@@ -257,12 +286,14 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
     client_ip = req.client.host if req.client else "unknown"
     logger.info(
         "Risk assessment requested",
-        extra={"extra_fields": {
-            "company": request.company_name,
-            "ai_usage": request.ai_usage[:50],
-            "processes_personal_data": request.processes_personal_data,
-            "client_ip": client_ip,
-        }},
+        extra={
+            "extra_fields": {
+                "company": request.company_name,
+                "ai_usage": request.ai_usage[:50],
+                "processes_personal_data": request.processes_personal_data,
+                "client_ip": client_ip,
+            }
+        },
     )
 
     try:
@@ -315,11 +346,13 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
 
         logger.info(
             "Risk assessment completed",
-            extra={"extra_fields": {
-                "company": request.company_name,
-                "risk_score": risk_score,
-                "recommendation": recommendation,
-            }},
+            extra={
+                "extra_fields": {
+                    "company": request.company_name,
+                    "risk_score": risk_score,
+                    "recommendation": recommendation,
+                }
+            },
         )
         return result
 
@@ -330,7 +363,9 @@ async def create_risk_assessment(request: AssessmentRequest, req: Request):
         )
         raise HTTPException(status_code=500, detail="Risk assessment failed")
 
+
 # ─── Stripe Checkout ───────────────────────────────────────────────────────────
+
 
 @app.post("/api/stripe/create-checkout-session")
 async def create_checkout(request: CheckoutRequest, req: Request):
@@ -340,17 +375,19 @@ async def create_checkout(request: CheckoutRequest, req: Request):
     """
     logger.info(
         "Checkout requested",
-        extra={"extra_fields": {
-            "plan": request.plan,
-            "currency": request.currency,
-            "client_ip": req.client.host if req.client else None,
-        }},
+        extra={
+            "extra_fields": {
+                "plan": request.plan,
+                "currency": request.currency,
+                "client_ip": req.client.host if req.client else None,
+            }
+        },
     )
 
     # Price mapping (KRW has no decimal places, USD in cents)
     prices = {
         "starter": {"krw": 129000, "usd": 9900},
-        "professional": {"krw": 390000, "usd": 29900}
+        "professional": {"krw": 390000, "usd": 29900},
     }
 
     plan_data = prices.get(request.plan)
@@ -381,7 +418,8 @@ async def create_checkout(request: CheckoutRequest, req: Request):
                 },
             ],
             mode="subscription",
-            success_url=os.getenv("FRONTEND_URL", "http://localhost:3000") + "/success?session_id={CHECKOUT_SESSION_ID}",
+            success_url=os.getenv("FRONTEND_URL", "http://localhost:3000")
+            + "/success?session_id={CHECKOUT_SESSION_ID}",
             cancel_url=os.getenv("FRONTEND_URL", "http://localhost:3000") + "/cancel",
             metadata={
                 "plan": request.plan,
@@ -391,28 +429,38 @@ async def create_checkout(request: CheckoutRequest, req: Request):
 
         logger.info(
             "Stripe checkout session created",
-            extra={"extra_fields": {
-                "plan": request.plan,
-                "amount": amount,
-                "currency": request.currency,
-                "session_id": checkout_session.id
-            }},
+            extra={
+                "extra_fields": {
+                    "plan": request.plan,
+                    "amount": amount,
+                    "currency": request.currency,
+                    "session_id": checkout_session.id,
+                }
+            },
         )
 
         return {
             "checkout_url": checkout_session.url,
             "session_id": checkout_session.id,
-            "success": True
+            "success": True,
         }
 
     except stripe.error.StripeError as e:
-        logger.error(f"Stripe error: {str(e)}", extra={"extra_fields": {"plan": request.plan, "error": str(e)}})
+        logger.error(
+            f"Stripe error: {str(e)}",
+            extra={"extra_fields": {"plan": request.plan, "error": str(e)}},
+        )
         raise HTTPException(status_code=500, detail=f"Payment processing error: {str(e)}")
     except Exception as e:
-        logger.error(f"Checkout error: {str(e)}", extra={"extra_fields": {"plan": request.plan, "error": str(e)}})
+        logger.error(
+            f"Checkout error: {str(e)}",
+            extra={"extra_fields": {"plan": request.plan, "error": str(e)}},
+        )
         raise HTTPException(status_code=500, detail="Failed to create checkout session")
 
+
 # ─── Stripe Webhook ────────────────────────────────────────────────────────────
+
 
 @app.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
@@ -424,7 +472,9 @@ async def stripe_webhook(request: Request):
     sig_header = request.headers.get("stripe-signature")
     webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-    logger.info("Stripe webhook received", extra={"extra_fields": {"has_signature": bool(sig_header)}})
+    logger.info(
+        "Stripe webhook received", extra={"extra_fields": {"has_signature": bool(sig_header)}}
+    )
 
     try:
         if webhook_secret and sig_header:
@@ -440,10 +490,10 @@ async def stripe_webhook(request: Request):
         event_type = event.get("type")
         event_data = event.get("data", {}).get("object", {})
 
-        logger.info(f"Processing Stripe event: {event_type}", extra={"extra_fields": {
-            "event_type": event_type,
-            "event_id": event.get("id")
-        }})
+        logger.info(
+            f"Processing Stripe event: {event_type}",
+            extra={"extra_fields": {"event_type": event_type, "event_id": event.get("id")}},
+        )
 
         if event_type == "checkout.session.completed":
             session_id = event_data.get("id")
@@ -453,12 +503,17 @@ async def stripe_webhook(request: Request):
             plan = metadata.get("plan", "unknown")
             currency = metadata.get("currency", "krw")
 
-            logger.info("Checkout completed successfully", extra={"extra_fields": {
-                "session_id": session_id,
-                "customer_email": customer_email,
-                "amount": amount_total,
-                "plan": plan
-            }})
+            logger.info(
+                "Checkout completed successfully",
+                extra={
+                    "extra_fields": {
+                        "session_id": session_id,
+                        "customer_email": customer_email,
+                        "amount": amount_total,
+                        "plan": plan,
+                    }
+                },
+            )
 
             # Persist subscription to database
             db = get_db()
@@ -482,7 +537,9 @@ async def stripe_webhook(request: Request):
                     else:
                         new_user = UserDB(
                             email=customer_email,
-                            company_name=customer_email.split("@")[0],  # Fallback until profile is filled
+                            company_name=customer_email.split("@")[
+                                0
+                            ],  # Fallback until profile is filled
                             plan=plan,
                         )
                         db.add(new_user)
@@ -521,26 +578,28 @@ async def stripe_webhook(request: Request):
         elif event_type == "payment_intent.succeeded":
             payment_intent_id = event_data.get("id")
             amount = event_data.get("amount", 0) / 100
-            logger.info("Payment confirmed", extra={"extra_fields": {
-                "payment_intent_id": payment_intent_id,
-                "amount": amount
-            }})
+            logger.info(
+                "Payment confirmed",
+                extra={"extra_fields": {"payment_intent_id": payment_intent_id, "amount": amount}},
+            )
 
         elif event_type in ["customer.subscription.created", "customer.subscription.updated"]:
             subscription_id = event_data.get("id")
             status = event_data.get("status")
-            logger.info(f"Subscription {event_type.split('.')[-1]}", extra={"extra_fields": {
-                "subscription_id": subscription_id,
-                "status": status
-            }})
+            logger.info(
+                f"Subscription {event_type.split('.')[-1]}",
+                extra={"extra_fields": {"subscription_id": subscription_id, "status": status}},
+            )
 
             # Update subscription status in DB
             db = get_db()
             if db:
                 try:
-                    sub = db.query(SubscriptionDB).filter(
-                        SubscriptionDB.stripe_subscription_id == subscription_id
-                    ).first()
+                    sub = (
+                        db.query(SubscriptionDB)
+                        .filter(SubscriptionDB.stripe_subscription_id == subscription_id)
+                        .first()
+                    )
                     if sub:
                         sub.status = status
                         db.commit()
@@ -553,10 +612,12 @@ async def stripe_webhook(request: Request):
         elif event_type == "payment_intent.payment_failed":
             payment_intent_id = event_data.get("id")
             error_message = event_data.get("last_payment_error", {}).get("message", "Unknown error")
-            logger.error("Payment failed", extra={"extra_fields": {
-                "payment_intent_id": payment_intent_id,
-                "error": error_message
-            }})
+            logger.error(
+                "Payment failed",
+                extra={
+                    "extra_fields": {"payment_intent_id": payment_intent_id, "error": error_message}
+                },
+            )
 
         else:
             logger.debug(f"Unhandled event type: {event_type}")
@@ -566,10 +627,14 @@ async def stripe_webhook(request: Request):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Webhook processing error: {str(e)}", extra={"extra_fields": {"error": str(e)}})
+        logger.error(
+            f"Webhook processing error: {str(e)}", extra={"extra_fields": {"error": str(e)}}
+        )
         raise HTTPException(status_code=500, detail="Webhook processing failed")
 
+
 # ─── Enterprise Lead Capture ───────────────────────────────────────────────────
+
 
 @app.post("/v1/leads")
 async def capture_enterprise_lead(request: LeadRequest, req: Request):
@@ -578,11 +643,16 @@ async def capture_enterprise_lead(request: LeadRequest, req: Request):
     Stores in database and triggers internal notification.
     """
     client_ip = req.client.host if req.client else "unknown"
-    logger.info("Enterprise lead received", extra={"extra_fields": {
-        "company": request.company_name,
-        "email": request.email,
-        "urgency": request.urgency,
-    }})
+    logger.info(
+        "Enterprise lead received",
+        extra={
+            "extra_fields": {
+                "company": request.company_name,
+                "email": request.email,
+                "urgency": request.urgency,
+            }
+        },
+    )
 
     db = get_db()
     if db:
@@ -617,5 +687,5 @@ async def capture_enterprise_lead(request: LeadRequest, req: Request):
     return {
         "success": True,
         "message": "Demo request received. Our team will contact you within 1 business hour.",
-        "message_ko": "데모 요청이 접수되었습니다. 영업일 기준 1시간 내 연락드리겠습니다."
+        "message_ko": "데모 요청이 접수되었습니다. 영업일 기준 1시간 내 연락드리겠습니다.",
     }
