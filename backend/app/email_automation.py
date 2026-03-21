@@ -164,7 +164,7 @@ class EmailAutomation:
                     6: {
                         "template": "sequence_90day_email6.html",
                         "subject_ko": f"⏰ {self._days_until_enforcement()}일 남음 - 진행 상황은?",  # noqa: E501
-                        "subject_en": (   # noqa: E501
+                        "subject_en": (  # noqa: E501
                             f"⏰ {self._days_until_enforcement()} Days Left - Your Progress?"
                         ),
                         "delay_days": 28,
